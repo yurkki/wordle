@@ -1,4 +1,4 @@
-# Простой Dockerfile для Railway
+# Простой Dockerfile без Actuator
 FROM openjdk:17-jdk-slim
 
 # Устанавливаем рабочую директорию
@@ -14,4 +14,4 @@ RUN chmod +x ./gradlew
 RUN ./gradlew build -x test
 
 # Запускаем приложение
-CMD ["sh", "-c", "java -jar build/libs/wordle-0.0.1-SNAPSHOT.jar --server.port=$PORT --server.address=0.0.0.0"]
+CMD ["java", "-jar", "build/libs/wordle-0.0.1-SNAPSHOT.jar"]

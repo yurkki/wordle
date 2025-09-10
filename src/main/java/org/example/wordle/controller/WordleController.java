@@ -163,18 +163,6 @@ public class WordleController {
         return "Игра не найдена";
     }
     
-    /**
-     * Healthcheck endpoint для Railway
-     */
-    @GetMapping("/health")
-    @ResponseBody
-    public ResponseEntity<Map<String, String>> health() {
-        Map<String, String> response = new HashMap<>();
-        response.put("status", "UP");
-        response.put("service", "wordle");
-        response.put("timestamp", String.valueOf(System.currentTimeMillis()));
-        return ResponseEntity.ok(response);
-    }
     
     /**
      * Простой endpoint для проверки запуска
