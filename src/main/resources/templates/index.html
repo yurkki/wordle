@@ -907,22 +907,28 @@
             }
 
             updateCurrentRow() {
-                // Находим первую строку с пустыми ячейками
+                // Находим первую свободную ячейку сверху вниз
                 for (let row = 0; row < 6; row++) {
                     const rowCells = document.querySelectorAll(`[data-row="${row}"].input-cell`);
                     if (rowCells.length > 0) {
-                        this.currentRow = row;
-                        this.currentCol = 0;
-                        break;
+                        // Проверяем, есть ли пустые ячейки в этой строке
+                        for (let col = 0; col < 5; col++) {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"].input-cell`);
+                            if (cell && !cell.textContent.trim()) {
+                                this.currentRow = row;
+                                this.currentCol = col;
+                                return;
+                            }
+                        }
                     }
                 }
             }
 
             setupEventListeners() {
-                // Обработка клика по ячейке
+                // Обработка клика по ячейке - всегда переходим к первой свободной ячейке
                 this.gameBoard.addEventListener('click', (e) => {
                     if (e.target.classList.contains('input-cell') && !this.isGameOver) {
-                        this.focusCell(e.target);
+                        this.focusFirstAvailableCell();
                     }
                 });
 
@@ -1069,6 +1075,25 @@
                 this.focusCurrentCell();
             }
 
+            focusFirstAvailableCell() {
+                // Находим первую свободную ячейку сверху вниз
+                for (let row = 0; row < 6; row++) {
+                    const rowCells = document.querySelectorAll(`[data-row="${row}"].input-cell`);
+                    if (rowCells.length > 0) {
+                        // Проверяем, есть ли пустые ячейки в этой строке
+                        for (let col = 0; col < 5; col++) {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"].input-cell`);
+                            if (cell && !cell.textContent.trim()) {
+                                this.currentRow = row;
+                                this.currentCol = col;
+                                this.focusCurrentCell();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+
             focusCurrentCell() {
                 // Убираем фокус со всех ячеек
                 document.querySelectorAll('.input-cell').forEach(cell => {
@@ -1203,19 +1228,39 @@
             }
 
             moveUp() {
-                if (this.currentRow > 0) {
-                    this.currentRow--;
-                    this.updateCurrentRow();
+                // Находим предыдущую свободную ячейку
+                for (let row = this.currentRow - 1; row >= 0; row--) {
+                    const rowCells = document.querySelectorAll(`[data-row="${row}"].input-cell`);
+                    if (rowCells.length > 0) {
+                        for (let col = 0; col < 5; col++) {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"].input-cell`);
+                            if (cell && !cell.textContent.trim()) {
+                                this.currentRow = row;
+                                this.currentCol = col;
+                                this.focusCurrentCell();
+                                return;
+                            }
+                        }
+                    }
                 }
-                this.focusCurrentCell();
             }
 
             moveDown() {
-                if (this.currentRow < 5) {
-                    this.currentRow++;
-                    this.updateCurrentRow();
+                // Находим следующую свободную ячейку
+                for (let row = this.currentRow + 1; row < 6; row++) {
+                    const rowCells = document.querySelectorAll(`[data-row="${row}"].input-cell`);
+                    if (rowCells.length > 0) {
+                        for (let col = 0; col < 5; col++) {
+                            const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"].input-cell`);
+                            if (cell && !cell.textContent.trim()) {
+                                this.currentRow = row;
+                                this.currentCol = col;
+                                this.focusCurrentCell();
+                                return;
+                            }
+                        }
+                    }
                 }
-                this.focusCurrentCell();
             }
 
             getCurrentWord() {

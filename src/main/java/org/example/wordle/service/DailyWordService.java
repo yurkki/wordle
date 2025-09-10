@@ -16,12 +16,12 @@ public class DailyWordService {
     private final List<String> dailyWords = Arrays.asList(
         "УСПЕХ", "АВТОР", "БАГАЖ", "ВЕТКА", "ГЛАЗА", "ЖИЗНЬ", "ИГРОК",
         "КАРТА", "ЛЕСОК", "МАСКА", "НОЖКА", "ПАРТА", "РЫБАК", "ТАБЛО",
-        "ФИЛЬМ", "ЦВЕТОК", "ШАПКА", "ЭКРАН", "АБЗАЦ",
+        "ФИЛЬМ", "ШАПКА", "ЭКРАН", "АБЗАЦ",
         "АГЕНТ", "АДРЕС", "АЗАРТ", "АЗИАТ", "АКРЫЛ", "АКТИВ", "АЛМАЗ", "АЛЬБА", "АМБАР", "АМПЕР",
         "АНГАР", "АНИСА", "АПЕЛЬ", "АРБУЗ", "АРЕНА", "АРХИВ", "АСТРА", "АТЛАС", "БАЗАР", "БАЙКА",
         "БАЛЕТ", "БАНАН", "БАРЖА", "БАСНЯ", "БАТОН", "БЕГУН", "БЕЛКА", "БЕРЕГ", "БИЛЕТ", "БИРЖА",
         "БЛОКА", "БОГАТ", "БОЖИЙ", "БОКАЛ", "БОМБА", "БОРОН", "ВАГОН", "ВАЗОН", "ВАЛЕТ", "ВАЛЬС",
-        "ВАННА", "ВЕСНА", "ВИДЕО", "ВИЛКА", "ВИНТА", "ВОЛНА", "ВОРОТ", "ВОСТОК", "ВЫБОР"
+        "ВАННА", "ВЕСНА", "ВИДЕО", "ВИЛКА", "ВИНТА", "ВОЛНА", "ВОРОТ", "ВЫБОР"
     );
     
     /**
@@ -30,8 +30,20 @@ public class DailyWordService {
     public String getWordForDate(LocalDate date) {
         // Используем хеш от даты для получения индекса слова
         int dayOfYear = date.getDayOfYear();
-        int wordIndex = dayOfYear % dailyWords.size();
-        return dailyWords.get(wordIndex);
+        
+        // Фильтруем только 5-буквенные слова
+        List<String> fiveLetterWords = dailyWords.stream()
+            .filter(word -> word.length() == 5)
+            .toList();
+        
+        if (fiveLetterWords.isEmpty()) {
+            // Если нет 5-буквенных слов, возвращаем первое слово из списка
+            return dailyWords.get(0);
+        }
+        
+        // Используем индекс для выбора из 5-буквенных слов
+        int wordIndex = dayOfYear % fiveLetterWords.size();
+        return fiveLetterWords.get(wordIndex);
     }
     
     /**
