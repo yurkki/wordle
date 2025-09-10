@@ -16,14 +16,12 @@ COPY src src
 # Даем права на выполнение gradlew
 RUN chmod +x ./gradlew
 
-# Собираем приложение
-RUN ./gradlew build -x test
-
-# Копируем собранный JAR файл
-COPY build/libs/wordle-0.0.1-SNAPSHOT.jar app.jar
+# Собираем приложение и копируем JAR в рабочую директорию
+RUN ./gradlew build -x test && \
+    cp build/libs/wordle-0.0.1-SNAPSHOT.jar app.jar
 
 # Открываем порт (Railway автоматически определяет порт из переменной PORT)
-EXPOSE $PORT
+EXPOSE 8080
 
 # Запускаем приложение с переменной окружения PORT
-CMD ["sh", "-c", "java -jar app.jar --server.port=$PORT"]
+CMD ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]

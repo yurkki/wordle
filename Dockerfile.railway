@@ -1,0 +1,35 @@
+# Многоэтапная сборка для Railway
+FROM openjdk:17-jdk-slim AS builder
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем Gradle wrapper и build файлы
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle .
+COPY settings.gradle .
+
+# Копируем исходный код
+COPY src src
+
+# Даем права на выполнение gradlew
+RUN chmod +x ./gradlew
+
+# Собираем приложение
+RUN ./gradlew build -x test
+
+# Финальный образ
+FROM openjdk:17-jre-slim
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем JAR файл из builder этапа
+COPY --from=builder /app/build/libs/wordle-0.0.1-SNAPSHOT.jar app.jar
+
+# Открываем порт
+EXPOSE 8080
+
+# Запускаем приложение
+CMD ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
