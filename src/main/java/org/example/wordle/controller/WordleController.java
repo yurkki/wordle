@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
@@ -160,5 +161,17 @@ public class WordleController {
             return gameState.getTargetWord();
         }
         return "Игра не найдена";
+    }
+    
+    /**
+     * Healthcheck endpoint для Railway
+     */
+    @GetMapping("/health")
+    @ResponseBody
+    public ResponseEntity<Map<String, String>> health() {
+        Map<String, String> response = new HashMap<>();
+        response.put("status", "UP");
+        response.put("service", "wordle");
+        return ResponseEntity.ok(response);
     }
 }
