@@ -440,41 +440,40 @@
         .keyboard {
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            margin-top: 30px;
-            padding: 12px;
+            gap: 8px;
+            margin: 30px 0 0 0;
+            padding: 20px;
             background: #f8f9fa;
-            border-radius: 10px;
-            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-            max-width: 100%;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
             width: 100%;
+            box-sizing: border-box;
         }
 
         .keyboard-row {
             display: flex;
-            gap: 3px;
+            gap: 4px;
             justify-content: center;
             flex-wrap: nowrap;
-            overflow-x: auto;
-            padding: 2px 0;
+            padding: 4px 0;
             width: 100%;
         }
 
         .key {
-            padding: 6px 8px;
+            padding: 8px 12px;
             border: 1px solid #ddd;
-            border-radius: 4px;
+            border-radius: 6px;
             background: #ffffff;
             cursor: pointer;
             font-weight: 600;
-            font-size: 10px;
+            font-size: 12px;
             transition: all 0.15s ease;
-            min-width: 28px;
-            width: 28px;
-            height: 32px;
+            min-width: 36px;
+            width: 36px;
+            height: 40px;
             text-align: center;
             user-select: none;
-            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -485,9 +484,9 @@
             background: #667eea;
             color: white;
             border-color: #667eea;
-            min-width: 35px;
-            width: 35px;
-            font-size: 9px;
+            min-width: 50px;
+            width: 50px;
+            font-size: 10px;
         }
 
         .key.special:hover {
@@ -635,12 +634,11 @@
             }
             
             .keyboard {
-                padding: 8px;
-                margin-top: 20px;
-                gap: 3px;
+                padding: 16px;
+                margin: 20px 0 0 0;
+                gap: 6px;
                 width: 100%;
-                margin-left: 0;
-                margin-right: 0;
+                box-sizing: border-box;
             }
             
             .keyboard-row {
@@ -650,28 +648,29 @@
             }
             
             .key {
-                padding: 4px 6px;
-                min-width: 22px;
-                width: 22px;
-                height: 28px;
-                font-size: 8px;
+                padding: 6px 8px;
+                min-width: 28px;
+                width: 28px;
+                height: 32px;
+                font-size: 10px;
                 flex: 1;
-                max-width: 30px;
+                max-width: 36px;
             }
             
             .key.special {
-                min-width: 30px;
-                width: 30px;
-                font-size: 7px;
+                min-width: 40px;
+                width: 40px;
+                font-size: 9px;
                 flex: 0 0 auto;
             }
             
             /* Специальные стили для iPhone 14 Pro и узких экранов */
             @media (max-width: 430px) {
                 .keyboard {
-                    padding: 6px;
-                    margin: 15px -10px 0 -10px;
-                    width: calc(100% + 20px);
+                    padding: 12px;
+                    margin: 15px 0 0 0;
+                    width: 100%;
+                    box-sizing: border-box;
                 }
                 
                 .keyboard-row {
@@ -679,17 +678,17 @@
                 }
                 
                 .key {
-                    min-width: 20px;
-                    width: 20px;
-                    height: 26px;
-                    font-size: 7px;
-                    padding: 3px 4px;
+                    min-width: 24px;
+                    width: 24px;
+                    height: 28px;
+                    font-size: 8px;
+                    padding: 4px 5px;
                 }
                 
                 .key.special {
-                    min-width: 28px;
-                    width: 28px;
-                    font-size: 6px;
+                    min-width: 32px;
+                    width: 32px;
+                    font-size: 7px;
                 }
             }
             
