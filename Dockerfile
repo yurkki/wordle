@@ -1,27 +1,17 @@
-# Используем официальный OpenJDK образ
+# Простой Dockerfile для Railway
 FROM openjdk:17-jdk-slim
 
 # Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Копируем Gradle wrapper и build файлы
-COPY gradlew .
-COPY gradle gradle
-COPY build.gradle .
-COPY settings.gradle .
-
-# Копируем исходный код
-COPY src src
+# Копируем все файлы
+COPY . .
 
 # Даем права на выполнение gradlew
 RUN chmod +x ./gradlew
 
-# Собираем приложение и копируем JAR в рабочую директорию
-RUN ./gradlew build -x test && \
-    cp build/libs/wordle-0.0.1-SNAPSHOT.jar app.jar
-
-# Открываем порт (Railway автоматически определяет порт из переменной PORT)
-EXPOSE 8080
+# Собираем приложение
+RUN ./gradlew build -x test
 
 # Запускаем приложение
-CMD ["sh", "-c", "java -jar app.jar --server.address=0.0.0.0"]
+CMD ["java", "-jar", "build/libs/wordle-0.0.1-SNAPSHOT.jar"]

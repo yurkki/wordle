@@ -5,8 +5,8 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "java -jar app.jar --spring.profiles.active=railway --server.address=0.0.0.0",
-    "healthcheckPath": "/",
+    "startCommand": "java -jar build/libs/wordle-0.0.1-SNAPSHOT.jar",
+    "healthcheckPath": "/status",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",
     "restartPolicyMaxRetries": 10

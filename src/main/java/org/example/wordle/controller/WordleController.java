@@ -179,9 +179,9 @@ public class WordleController {
     /**
      * Простой endpoint для проверки запуска
      */
-    @GetMapping("/")
+    @GetMapping("/status")
     @ResponseBody
-    public ResponseEntity<Map<String, String>> root() {
+    public ResponseEntity<Map<String, String>> status() {
         Map<String, String> response = new HashMap<>();
         response.put("message", "Wordle Game is running!");
         response.put("status", "UP");
