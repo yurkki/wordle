@@ -136,6 +136,84 @@
             transform: translateY(-50%) scale(1.1);
         }
 
+        /* Стили для модального окна с результатом игры */
+        .modal {
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-content {
+            background-color: white;
+            padding: 40px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            max-width: 500px;
+            width: 90%;
+            min-height: 300px;
+            text-align: center;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .close {
+            position: absolute;
+            right: 15px;
+            top: 15px;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            color: #aaa;
+            line-height: 1;
+        }
+
+        .close:hover {
+            color: #000;
+        }
+
+        .modal-buttons {
+            margin-top: 30px;
+        }
+
+        #gameResultContent h2 {
+            margin: 0 0 25px 0;
+            font-size: 2.2em;
+        }
+
+        #gameResultContent p {
+            margin: 15px 0;
+            font-size: 1.2em;
+            line-height: 1.5;
+        }
+
+        .success-message {
+            color: #28a745;
+        }
+
+        .failure-message {
+            color: #dc3545;
+        }
+
+        .target-word {
+            font-weight: bold;
+            font-size: 1.4em;
+            color: #333;
+            background: #f8f9fa;
+            padding: 15px 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            border: 2px solid #e9ecef;
+        }
+
         .status.won {
             color: #4CAF50;
         }
@@ -820,9 +898,7 @@
                 <button type="submit" class="btn btn-primary">Новая игра</button>
             </form>
             
-            <form th:if="${!gameState.isGameOver() and gameState.gameMode == T(org.example.wordle.model.GameMode).GUESS}" method="post" action="/new-game" style="display: inline;">
-                <button type="submit" class="btn btn-secondary">Начать заново</button>
-            </form>
+            <!-- Кнопка "Начать заново" убрана из режима "Угадывать" -->
         </div>
 
         <!-- Виртуальная клавиатура -->
@@ -887,6 +963,19 @@
         </div>
     </div>
 
+    <!-- Модальное окно с результатом игры -->
+    <div id="gameResultModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close" id="closeModal">&times;</span>
+            <div id="gameResultContent">
+                <!-- Содержимое будет заполнено JavaScript -->
+            </div>
+            <div class="modal-buttons">
+                <button id="newGameBtn" class="btn btn-primary">Начать заново</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         class WordleGame {
             constructor() {
@@ -901,6 +990,7 @@
                 this.setupEventListeners();
                 this.setupKeyboardListeners();
                 this.setupModeListeners();
+                this.setupModalListeners();
                 this.updateCurrentRow();
                 this.focusCurrentCell();
             }
@@ -1034,6 +1124,36 @@
                         }
                     });
                 });
+            }
+
+            setupModalListeners() {
+                const modal = document.getElementById('gameResultModal');
+                const closeBtn = document.getElementById('closeModal');
+                const newGameBtn = document.getElementById('newGameBtn');
+
+                // Закрытие модального окна по клику на крестик
+                if (closeBtn) {
+                    closeBtn.addEventListener('click', () => {
+                        this.closeModal();
+                    });
+                }
+
+                // Закрытие модального окна по клику вне его
+                if (modal) {
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) {
+                            this.closeModal();
+                        }
+                    });
+                }
+
+                // Кнопка "Начать заново" в модальном окне
+                if (newGameBtn) {
+                    newGameBtn.addEventListener('click', () => {
+                        this.closeModal();
+                        this.startNewGame();
+                    });
+                }
             }
 
             switchMode(mode) {
@@ -1300,10 +1420,11 @@
                             
                             // Проверяем статус игры
                             if (result.gameState.status === 'WON') {
-                                this.showMessage('Поздравляем! Вы выиграли!', 'success');
+                                const attempts = result.gameState.guesses.length;
+                                this.showGameResultModal(true, attempts, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else if (result.gameState.status === 'LOST') {
-                                this.showMessage(`Игра окончена. Загаданное слово: ${result.gameState.targetWord}`, 'error');
+                                this.showGameResultModal(false, 6, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else {
                                 // Переходим к следующей строке
@@ -1336,6 +1457,40 @@
                         }, 500);
                     }
                 });
+            }
+
+            showGameResultModal(isWin, attempts, targetWord) {
+                const modal = document.getElementById('gameResultModal');
+                const content = document.getElementById('gameResultContent');
+                
+                if (isWin) {
+                    content.innerHTML = `
+                        <h2 class="success-message">🎉 Поздравляем!</h2>
+                        <p>Вы угадали слово за <strong>${attempts}</strong> попыт${attempts === 1 ? 'ку' : attempts < 5 ? 'ки' : 'ок'}!</p>
+                    `;
+                } else {
+                    content.innerHTML = `
+                        <h2 class="failure-message">😔 Игра окончена</h2>
+                        <p>К сожалению, вы не угадали слово.</p>
+                        <div class="target-word">Загаданное слово: <strong>${targetWord}</strong></div>
+                    `;
+                }
+                
+                modal.style.display = 'flex';
+            }
+
+            closeModal() {
+                const modal = document.getElementById('gameResultModal');
+                modal.style.display = 'none';
+            }
+
+            startNewGame() {
+                // Отправляем запрос на новую игру
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/new-game';
+                document.body.appendChild(form);
+                form.submit();
             }
 
             resetKeyboardHighlight() {
