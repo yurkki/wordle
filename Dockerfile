@@ -23,5 +23,5 @@ RUN ./gradlew build -x test && \
 # Открываем порт (Railway автоматически определяет порт из переменной PORT)
 EXPOSE 8080
 
-# Запускаем приложение с переменной окружения PORT
-CMD ["sh", "-c", "java -jar app.jar --server.port=${PORT:-8080}"]
+# Запускаем приложение
+CMD ["sh", "-c", "java -jar app.jar --server.address=0.0.0.0"]

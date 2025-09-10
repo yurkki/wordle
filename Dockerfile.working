@@ -1,0 +1,17 @@
+# Рабочий Dockerfile для Railway
+FROM openjdk:17-jdk-slim
+
+# Устанавливаем рабочую директорию
+WORKDIR /app
+
+# Копируем все файлы
+COPY . .
+
+# Даем права на выполнение gradlew
+RUN chmod +x ./gradlew
+
+# Собираем приложение
+RUN ./gradlew build -x test
+
+# Запускаем приложение с Railway профилем
+CMD ["sh", "-c", "java -jar build/libs/wordle-0.0.1-SNAPSHOT.jar --spring.profiles.active=railway --server.address=0.0.0.0"]
