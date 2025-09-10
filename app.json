@@ -1,0 +1,12 @@
+{
+  "name": "Wordle Game",
+  "description": "Русская версия игры Wordle на Spring Boot",
+  "repository": "https://github.com/yourusername/wordle",
+  "keywords": ["wordle", "game", "spring-boot", "java"],
+  "success_url": "/",
+  "buildpacks": [
+    {
+      "url": "heroku/java"
+    }
+  ]
+}

@@ -1,0 +1,1420 @@
+<!DOCTYPE html>
+<html lang="ru" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wordle - Русская версия</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .game-info {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #666;
+        }
+
+
+        .status {
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .mode-selector {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .mode-toggle {
+            display: inline-flex;
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .mode-toggle input[type="radio"] {
+            display: none;
+        }
+
+        .mode-toggle label {
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            color: #666;
+        }
+
+        .mode-toggle input[type="radio"]:checked + label {
+            background: #007bff;
+            color: white;
+            box-shadow: 0 2px 4px rgba(0,123,255,0.3);
+        }
+
+        .mode-toggle label:hover {
+            background: #e9ecef;
+        }
+
+        .mode-toggle input[type="radio"]:checked + label:hover {
+            background: #0056b3;
+        }
+
+        .daily-info {
+            margin-top: 10px;
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .header-container h1 {
+            margin: 0;
+            flex: 1;
+            text-align: center;
+        }
+
+        .settings-btn {
+            background: #f8f9fa;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .settings-btn:hover {
+            background: #e9ecef;
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .status.won {
+            color: #4CAF50;
+        }
+
+        .status.lost {
+            color: #f44336;
+        }
+
+        .status.in-progress {
+            color: #2196F3;
+        }
+
+        .game-board {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 30px;
+        }
+
+        .word-row {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .letter-cell {
+            width: 60px;
+            height: 60px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8em;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: all 0.3s ease;
+            background: #f9f9f9;
+        }
+
+        .letter-cell.input-cell {
+            cursor: text;
+            background: white;
+            border-color: #ccc;
+        }
+
+        .letter-cell.input-cell:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+            background: #f8f9ff;
+        }
+
+        .letter-cell.input-cell.filled {
+            background: #e3f2fd;
+            border-color: #2196F3;
+        }
+
+        .letter-cell.input-cell.current {
+            border-color: #667eea;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+            background: #f0f4ff;
+            animation: pulse 1.5s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 15px rgba(102, 126, 234, 0.5); }
+            50% { box-shadow: 0 0 25px rgba(102, 126, 234, 0.8); }
+            100% { box-shadow: 0 0 15px rgba(102, 126, 234, 0.5); }
+        }
+
+        @keyframes letterAppear {
+            0% { 
+                transform: scale(0.8);
+                opacity: 0;
+            }
+            50% { 
+                transform: scale(1.1);
+                opacity: 0.8;
+            }
+            100% { 
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+
+        .letter-cell.correct {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+            animation: flip 0.6s ease-in-out;
+        }
+
+        .letter-cell.present {
+            background: #FFC107;
+            color: white;
+            border-color: #FFC107;
+            animation: flip 0.6s ease-in-out;
+        }
+
+        .letter-cell.absent {
+            background: #9E9E9E;
+            color: white;
+            border-color: #9E9E9E;
+            animation: flip 0.6s ease-in-out;
+        }
+
+        @keyframes flip {
+            0% { transform: rotateX(0); }
+            50% { transform: rotateX(-90deg); }
+            100% { transform: rotateX(0); }
+        }
+
+        .input-section {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .word-input {
+            width: 200px;
+            padding: 15px;
+            font-size: 1.2em;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            text-transform: uppercase;
+            margin-right: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .word-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn {
+            padding: 15px 25px;
+            font-size: 1.1em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+            margin-left: 10px;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #f5c6cb;
+        }
+
+        .success {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            border: 1px solid #c3e6cb;
+        }
+
+        /* Стили для модального окна */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background-color: #fefefe;
+            margin: 5% auto;
+            padding: 0;
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            animation: slideIn 0.3s ease;
+        }
+
+        .modal-header {
+            padding: 20px 25px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            font-size: 1.5em;
+        }
+
+        .close {
+            color: white;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.3s ease;
+        }
+
+        .close:hover {
+            opacity: 0.7;
+        }
+
+        .modal-body {
+            padding: 25px;
+        }
+
+        .setting-item {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .setting-item label {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-weight: 600;
+            color: #333;
+            cursor: pointer;
+            margin-bottom: 5px;
+        }
+
+        .setting-item input[type="checkbox"] {
+            transform: scale(1.3);
+            cursor: pointer;
+        }
+
+        .setting-description {
+            margin: 5px 0 0 0;
+            font-size: 0.9em;
+            color: #666;
+            font-style: italic;
+        }
+
+        .modal-footer {
+            padding: 20px 25px;
+            text-align: center;
+            border-top: 1px solid #eee;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideIn {
+            from { 
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to { 
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .keyboard {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 30px;
+            padding: 12px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+            max-width: 100%;
+        }
+
+        .keyboard-row {
+            display: flex;
+            gap: 3px;
+            justify-content: center;
+            flex-wrap: nowrap;
+            overflow-x: auto;
+            padding: 2px 0;
+        }
+
+        .key {
+            padding: 6px 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: #ffffff;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 10px;
+            transition: all 0.15s ease;
+            min-width: 28px;
+            width: 28px;
+            height: 32px;
+            text-align: center;
+            user-select: none;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .key:hover {
+            background: #e9e9e9;
+            transform: scale(1.05);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .key:active {
+            transform: scale(0.95);
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .key.correct {
+            background: #4CAF50;
+            color: white;
+            border-color: #4CAF50;
+        }
+
+        .key.present {
+            background: #FFC107;
+            color: white;
+            border-color: #FFC107;
+        }
+
+        .key.absent {
+            background: #9E9E9E;
+            color: white;
+            border-color: #9E9E9E;
+        }
+
+        .key.disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .key.disabled:hover {
+            transform: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .rules {
+            margin-top: 30px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+            overflow: hidden;
+        }
+
+        .rules-header {
+            padding: 20px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            user-select: none;
+            transition: background-color 0.2s ease;
+        }
+
+        .rules-header:hover {
+            background-color: #e9ecef;
+        }
+
+        .rules h3 {
+            color: #333;
+            margin: 0;
+        }
+
+        .rules-toggle {
+            font-size: 18px;
+            color: #667eea;
+            transition: transform 0.3s ease;
+        }
+
+        .rules-content {
+            padding: 0 20px 20px 20px;
+            transition: max-height 0.3s ease, opacity 0.3s ease;
+            overflow: hidden;
+        }
+
+        .rules.collapsed .rules-content {
+            max-height: 0;
+            padding: 0 20px;
+            opacity: 0;
+        }
+
+        .rules.collapsed .rules-toggle {
+            transform: rotate(-90deg);
+        }
+
+        .rules ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .rules li {
+            margin-bottom: 8px;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .rules li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        @media (max-width: 600px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            .letter-cell {
+                width: 50px;
+                height: 50px;
+                font-size: 1.5em;
+            }
+            
+            .keyboard {
+                padding: 8px;
+                margin-top: 20px;
+                gap: 3px;
+            }
+            
+            .keyboard-row {
+                gap: 2px;
+            }
+            
+            .key {
+                padding: 4px 6px;
+                min-width: 24px;
+                width: 24px;
+                height: 28px;
+                font-size: 9px;
+            }
+            
+            /* Сворачиваем правила по умолчанию на мобильных */
+            .rules {
+                margin-top: 20px;
+            }
+            
+            .rules-header {
+                padding: 15px;
+            }
+            
+            .rules-content {
+                padding: 0 15px 15px 15px;
+            }
+            
+            .rules.collapsed .rules-content {
+                padding: 0 15px;
+            }
+            
+            /* Мобильные стили для модального окна */
+            .modal-content {
+                margin: 10% auto;
+                width: 95%;
+                max-width: none;
+            }
+            
+            .modal-header {
+                padding: 15px 20px;
+            }
+            
+            .modal-header h2 {
+                font-size: 1.3em;
+            }
+            
+            .modal-body {
+                padding: 20px;
+            }
+            
+            .setting-item {
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+            
+            .modal-footer {
+                padding: 15px 20px;
+            }
+            
+            /* Мобильные стили для заголовка */
+            .header-container {
+                margin-bottom: 15px;
+            }
+            
+            .header-container h1 {
+                font-size: 2em;
+            }
+            
+            .settings-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Заголовок с кнопкой настроек -->
+        <div class="header-container">
+            <h1>WORDLE</h1>
+            <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
+                ⚙️
+            </button>
+        </div>
+        
+        <!-- Переключатель режимов -->
+        <div class="mode-selector">
+            <div class="mode-toggle">
+                <input type="radio" id="mode-guess" name="gameMode" value="guess" th:checked="${gameState.gameMode == T(org.example.wordle.model.GameMode).GUESS}">
+                <label for="mode-guess">Угадывать</label>
+                
+                <input type="radio" id="mode-daily" name="gameMode" value="daily" th:checked="${gameState.gameMode == T(org.example.wordle.model.GameMode).DAILY}">
+                <label for="mode-daily">Слово дня</label>
+            </div>
+            <div class="daily-info" id="dailyInfo" th:style="${gameState.gameMode == T(org.example.wordle.model.GameMode).DAILY} ? 'display: block;' : 'display: none;'">
+                <span id="dailyDate" th:data-date="${todayDate}">Слово дня на <span th:text="${todayDate}">сегодня</span></span>
+            </div>
+        </div>
+        
+        <div class="game-info">
+            <div class="status" th:classappend="${gameState.status.name().toLowerCase()}" 
+                 th:text="${gameState.status == T(org.example.wordle.model.GameStatus).WON ? 'Поздравляем! Вы выиграли!' : 
+                          gameState.status == T(org.example.wordle.model.GameStatus).LOST ? 'Игра окончена. Загаданное слово: ' + gameState.targetWord : 
+                          'Угадайте слово из 5 букв'}">
+                Угадайте слово из 5 букв
+            </div>
+        </div>
+
+        <div th:if="${error}" class="error" th:text="${error}"></div>
+        <div th:if="${lastGuess != null and gameState.status == T(org.example.wordle.model.GameStatus).WON}" 
+             class="success">Отлично! Вы угадали слово!</div>
+
+        <div class="game-board" id="gameBoard">
+            <!-- Отображаем результаты попыток -->
+            <div th:each="guess, iterStat : ${gameState.guesses}" class="word-row" th:data-row="${iterStat.index}">
+                <div th:each="letter, letterIter : ${guess.letters}" 
+                     class="letter-cell" 
+                     th:classappend="${letter.state.name().toLowerCase()}"
+                     th:data-row="${iterStat.index}"
+                     th:data-col="${letterIter.index}"
+                     th:text="${letter.letter}">
+                </div>
+            </div>
+            
+            <!-- Пустые строки для оставшихся попыток -->
+            <div th:each="i : ${#numbers.sequence(0, 5 - #lists.size(gameState.guesses))}" 
+                 class="word-row" 
+                 th:data-row="${#lists.size(gameState.guesses) + i}">
+                <div th:each="j : ${#numbers.sequence(0, 4)}" 
+                     class="letter-cell input-cell" 
+                     th:data-row="${#lists.size(gameState.guesses) + i}"
+                     th:data-col="${j}"
+                     tabindex="0"></div>
+            </div>
+        </div>
+
+        <div class="input-section">
+            <form th:if="${gameState.isGameOver() and gameState.gameMode == T(org.example.wordle.model.GameMode).GUESS}" method="post" action="/new-game" style="display: inline;">
+                <button type="submit" class="btn btn-primary">Новая игра</button>
+            </form>
+            
+            <form th:if="${!gameState.isGameOver() and gameState.gameMode == T(org.example.wordle.model.GameMode).GUESS}" method="post" action="/new-game" style="display: inline;">
+                <button type="submit" class="btn btn-secondary">Начать заново</button>
+            </form>
+        </div>
+
+        <!-- Виртуальная клавиатура -->
+        <div class="keyboard" id="virtualKeyboard">
+            <div class="keyboard-row">
+                <div class="key" data-key="Й">Й</div>
+                <div class="key" data-key="Ц">Ц</div>
+                <div class="key" data-key="У">У</div>
+                <div class="key" data-key="К">К</div>
+                <div class="key" data-key="Е">Е</div>
+                <div class="key" data-key="Н">Н</div>
+                <div class="key" data-key="Г">Г</div>
+                <div class="key" data-key="Ш">Ш</div>
+                <div class="key" data-key="Щ">Щ</div>
+                <div class="key" data-key="З">З</div>
+                <div class="key" data-key="Х">Х</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key" data-key="Ф">Ф</div>
+                <div class="key" data-key="Ы">Ы</div>
+                <div class="key" data-key="В">В</div>
+                <div class="key" data-key="А">А</div>
+                <div class="key" data-key="П">П</div>
+                <div class="key" data-key="Р">Р</div>
+                <div class="key" data-key="О">О</div>
+                <div class="key" data-key="Л">Л</div>
+                <div class="key" data-key="Д">Д</div>
+                <div class="key" data-key="Ж">Ж</div>
+                <div class="key" data-key="Э">Э</div>
+            </div>
+            <div class="keyboard-row">
+                <div class="key" data-key="Я">Я</div>
+                <div class="key" data-key="Ч">Ч</div>
+                <div class="key" data-key="С">С</div>
+                <div class="key" data-key="М">М</div>
+                <div class="key" data-key="И">И</div>
+                <div class="key" data-key="Т">Т</div>
+                <div class="key" data-key="Ь">Ь</div>
+                <div class="key" data-key="Б">Б</div>
+                <div class="key" data-key="Ю">Ю</div>
+                <div class="key" data-key="Ъ">Ъ</div>
+            </div>
+        </div>
+
+        <div class="rules" id="rulesBlock">
+            <div class="rules-header" onclick="toggleRules()">
+                <h3>Правила игры:</h3>
+                <span class="rules-toggle" id="rulesToggle">▼</span>
+            </div>
+            <div class="rules-content" id="rulesContent">
+                <ul>
+                    <li>Угадайте слово из 5 букв за 6 попыток</li>
+                    <li>Зеленый цвет - буква на правильном месте</li>
+                    <li>Желтый цвет - буква есть в слове, но на другом месте</li>
+                    <li>Серый цвет - буквы нет в слове</li>
+                    <li>Вводите любые слова из 5 русских букв</li>
+                    <li>Используйте стрелки для навигации, Enter для проверки</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class WordleGame {
+            constructor() {
+                this.currentRow = 0;
+                this.currentCol = 0;
+                this.gameBoard = document.getElementById('gameBoard');
+                this.isGameOver = false;
+                this.init();
+            }
+
+            init() {
+                this.setupEventListeners();
+                this.setupKeyboardListeners();
+                this.setupModeListeners();
+                this.updateCurrentRow();
+                this.focusCurrentCell();
+            }
+
+            updateCurrentRow() {
+                // Находим первую строку с пустыми ячейками
+                for (let row = 0; row < 6; row++) {
+                    const rowCells = document.querySelectorAll(`[data-row="${row}"].input-cell`);
+                    if (rowCells.length > 0) {
+                        this.currentRow = row;
+                        this.currentCol = 0;
+                        break;
+                    }
+                }
+            }
+
+            setupEventListeners() {
+                // Обработка клика по ячейке
+                this.gameBoard.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('input-cell') && !this.isGameOver) {
+                        this.focusCell(e.target);
+                    }
+                });
+
+                // Обработка клавиатуры
+                document.addEventListener('keydown', (e) => {
+                    if (this.isGameOver) return;
+
+                    const currentCell = this.getCurrentCell();
+                    if (!currentCell) return;
+
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        this.submitWord();
+                    } else if (e.key === 'Backspace') {
+                        e.preventDefault();
+                        this.handleBackspace();
+                    } else if (e.key === 'ArrowLeft') {
+                        e.preventDefault();
+                        this.moveLeft();
+                    } else if (e.key === 'ArrowRight') {
+                        e.preventDefault();
+                        this.moveRight();
+                    } else if (e.key === 'ArrowUp') {
+                        e.preventDefault();
+                        this.moveUp();
+                    } else if (e.key === 'ArrowDown') {
+                        e.preventDefault();
+                        this.moveDown();
+                    } else if (this.isValidLetter(e.key)) {
+                        e.preventDefault();
+                        this.handleLetterInput(e.key.toUpperCase());
+                    }
+                });
+            }
+
+            setupKeyboardListeners() {
+                const keyboard = document.getElementById('virtualKeyboard');
+                if (!keyboard) return;
+
+                keyboard.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('key') && !this.isGameOver) {
+                        const key = e.target.dataset.key;
+                        if (this.isValidLetter(key)) {
+                            this.handleLetterInput(key);
+                        }
+                    }
+                });
+            }
+
+            setupModeListeners() {
+                const modeInputs = document.querySelectorAll('input[name="gameMode"]');
+                const dailyInfo = document.getElementById('dailyInfo');
+                const dailyDate = document.getElementById('dailyDate');
+                
+                console.log('Setting up mode listeners, found inputs:', modeInputs.length);
+                
+                // Устанавливаем дату для режима "Слово дня"
+                if (dailyInfo && dailyDate) {
+                    const date = dailyDate.dataset.date || 'сегодня';
+                    dailyDate.innerHTML = 'Слово дня на <strong>' + date + '</strong>';
+                    console.log('Daily info setup with date:', date);
+                }
+
+                // Инициализируем состояние переключателя
+                const currentMode = document.querySelector('input[name="gameMode"]:checked');
+                if (currentMode) {
+                    console.log('Current mode:', currentMode.value);
+                    if (dailyInfo) {
+                        if (currentMode.value === 'daily') {
+                            dailyInfo.style.display = 'block';
+                        } else {
+                            dailyInfo.style.display = 'none';
+                        }
+                    }
+                }
+
+                modeInputs.forEach((input, index) => {
+                    console.log(`Setting up listener for input ${index}:`, input.value, input.checked);
+                    
+                    input.addEventListener('change', (e) => {
+                        console.log('Mode changed to:', e.target.value, e.target.checked);
+                        
+                        if (e.target.checked) {
+                            const mode = e.target.value;
+                            
+                            // Показываем/скрываем информацию о дне
+                            if (dailyInfo) {
+                                if (mode === 'daily') {
+                                    dailyInfo.style.display = 'block';
+                                    console.log('Showing daily info');
+                                } else {
+                                    dailyInfo.style.display = 'none';
+                                    console.log('Hiding daily info');
+                                }
+                            }
+                            
+                            // Переключаем режим игры
+                            this.switchMode(mode);
+                        }
+                    });
+                });
+            }
+
+            switchMode(mode) {
+                console.log('Switching to mode:', mode);
+                
+                // Отправляем запрос на сервер для переключения режима
+                const form = document.createElement('form');
+                form.method = 'POST';
+                form.action = '/switch-mode';
+                
+                const input = document.createElement('input');
+                input.type = 'hidden';
+                input.name = 'mode';
+                input.value = mode;
+                
+                form.appendChild(input);
+                document.body.appendChild(form);
+                
+                console.log('Submitting form with action:', form.action);
+                console.log('Form data:', new FormData(form));
+                
+                form.submit();
+            }
+
+            isValidLetter(key) {
+                return /[а-яА-Я]/.test(key) && key.length === 1;
+            }
+
+            getCurrentCell() {
+                return document.querySelector(`[data-row="${this.currentRow}"][data-col="${this.currentCol}"].input-cell`);
+            }
+
+            focusCell(cell) {
+                const row = parseInt(cell.dataset.row);
+                const col = parseInt(cell.dataset.col);
+                this.currentRow = row;
+                this.currentCol = col;
+                this.focusCurrentCell();
+            }
+
+            focusCurrentCell() {
+                // Убираем фокус со всех ячеек
+                document.querySelectorAll('.input-cell').forEach(cell => {
+                    cell.classList.remove('current');
+                });
+
+                const currentCell = this.getCurrentCell();
+                if (currentCell) {
+                    currentCell.classList.add('current');
+                    currentCell.focus();
+                }
+            }
+
+            handleLetterInput(letter) {
+                const currentCell = this.getCurrentCell();
+                if (currentCell && !currentCell.textContent) {
+                    currentCell.textContent = letter;
+                    currentCell.classList.add('filled');
+                    
+                    // Добавляем анимацию появления буквы
+                    currentCell.style.animation = 'letterAppear 0.3s ease';
+                    setTimeout(() => {
+                        currentCell.style.animation = '';
+                    }, 300);
+                    
+                    this.moveRight();
+                }
+            }
+
+            handleBackspace() {
+                const currentCell = this.getCurrentCell();
+                if (currentCell && currentCell.textContent) {
+                    currentCell.textContent = '';
+                    currentCell.classList.remove('filled');
+                } else {
+                    this.moveLeft();
+                    const prevCell = this.getCurrentCell();
+                    if (prevCell) {
+                        prevCell.textContent = '';
+                        prevCell.classList.remove('filled');
+                    }
+                }
+            }
+
+            moveLeft() {
+                if (this.currentCol > 0) {
+                    this.currentCol--;
+                }
+                this.focusCurrentCell();
+            }
+
+            moveRight() {
+                if (this.currentCol < 4) {
+                    this.currentCol++;
+                }
+                this.focusCurrentCell();
+            }
+
+            moveToNextRow() {
+                if (this.currentRow < 5) {
+                    this.currentRow++;
+                    this.currentCol = 0;
+                }
+                this.updateCurrentRow();
+                this.focusCurrentCell();
+            }
+
+            applyGuessResult(guess) {
+                const rowCells = document.querySelectorAll(`[data-row="${this.currentRow}"].input-cell`);
+                
+                // Проверяем, есть ли хотя бы одна угаданная буква
+                let hasCorrectOrPresent = false;
+                
+                // Применяем результат к каждой ячейке
+                guess.letters.forEach((letter, index) => {
+                    if (rowCells[index]) {
+                        const cell = rowCells[index];
+                        cell.textContent = letter.letter;
+                        cell.classList.remove('input-cell', 'filled', 'current');
+                        cell.classList.add(letter.state.toLowerCase());
+                        
+                        // Проверяем, есть ли правильные или присутствующие буквы
+                        if (letter.state === 'CORRECT' || letter.state === 'PRESENT') {
+                            hasCorrectOrPresent = true;
+                        }
+                        
+                        // Добавляем анимацию появления результата
+                        cell.style.animation = 'letterAppear 0.6s ease';
+                        setTimeout(() => {
+                            cell.style.animation = '';
+                        }, 600);
+                    }
+                });
+
+                // Если ни одной буквы не угадано, воспроизводим звук разочарования
+                if (!hasCorrectOrPresent) {
+                    setTimeout(() => {
+                        playDisappointmentSound();
+                    }, 300); // Небольшая задержка для синхронизации с анимацией
+                }
+
+                // Обновляем подсветку клавиатуры
+                this.updateKeyboardHighlight(guess);
+            }
+
+            updateKeyboardHighlight(guess) {
+                // Создаем карту состояний букв
+                const letterStates = {};
+                
+                guess.letters.forEach(letter => {
+                    const key = letter.letter;
+                    const state = letter.state.toLowerCase();
+                    
+                    // Приоритет: correct > present > absent
+                    if (!letterStates[key] || 
+                        (state === 'correct') || 
+                        (state === 'present' && letterStates[key] === 'absent')) {
+                        letterStates[key] = state;
+                    }
+                });
+
+                // Применяем подсветку к клавишам
+                Object.entries(letterStates).forEach(([letter, state]) => {
+                    const keyElement = document.querySelector(`.key[data-key="${letter}"]`);
+                    if (keyElement) {
+                        // Убираем предыдущие состояния
+                        keyElement.classList.remove('correct', 'present', 'absent');
+                        // Добавляем новое состояние
+                        keyElement.classList.add(state);
+                    }
+                });
+            }
+
+            moveUp() {
+                if (this.currentRow > 0) {
+                    this.currentRow--;
+                    this.updateCurrentRow();
+                }
+                this.focusCurrentCell();
+            }
+
+            moveDown() {
+                if (this.currentRow < 5) {
+                    this.currentRow++;
+                    this.updateCurrentRow();
+                }
+                this.focusCurrentCell();
+            }
+
+            getCurrentWord() {
+                const rowCells = document.querySelectorAll(`[data-row="${this.currentRow}"].input-cell`);
+                return Array.from(rowCells).map(cell => cell.textContent || '').join('');
+            }
+
+            isCurrentRowComplete() {
+                const rowCells = document.querySelectorAll(`[data-row="${this.currentRow}"].input-cell`);
+                return rowCells.length === 5 && Array.from(rowCells).every(cell => cell.textContent.trim() !== '');
+            }
+
+            async submitWord() {
+                if (!this.isCurrentRowComplete()) {
+                    this.showMessage('Введите все 5 букв', 'error');
+                    // Подсвечиваем пустые ячейки
+                    this.highlightEmptyCells();
+                    return;
+                }
+
+                const word = this.getCurrentWord();
+                this.isGameOver = true;
+
+                try {
+                    const response = await fetch('/api/guess', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: `word=${encodeURIComponent(word)}`
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            // Применяем результат к текущей строке
+                            this.applyGuessResult(result.lastGuess);
+                            
+                            // Проверяем статус игры
+                            if (result.gameState.status === 'WON') {
+                                this.showMessage('Поздравляем! Вы выиграли!', 'success');
+                                this.isGameOver = true;
+                            } else if (result.gameState.status === 'LOST') {
+                                this.showMessage(`Игра окончена. Загаданное слово: ${result.gameState.targetWord}`, 'error');
+                                this.isGameOver = true;
+                            } else {
+                                // Переходим к следующей строке
+                                this.moveToNextRow();
+                                this.isGameOver = false;
+                            }
+                        } else {
+                            this.showMessage(result.error || 'Ошибка при обработке слова', 'error');
+                            this.isGameOver = false;
+                        }
+                    } else {
+                        this.showMessage('Ошибка при отправке слова', 'error');
+                        this.isGameOver = false;
+                    }
+                } catch (error) {
+                    this.showMessage('Ошибка соединения', 'error');
+                    this.isGameOver = false;
+                }
+            }
+
+            highlightEmptyCells() {
+                const rowCells = document.querySelectorAll(`[data-row="${this.currentRow}"].input-cell`);
+                rowCells.forEach(cell => {
+                    if (!cell.textContent) {
+                        cell.style.animation = 'shake 0.5s ease';
+                        cell.style.borderColor = '#f44336';
+                        setTimeout(() => {
+                            cell.style.animation = '';
+                            cell.style.borderColor = '';
+                        }, 500);
+                    }
+                });
+            }
+
+            resetKeyboardHighlight() {
+                const keys = document.querySelectorAll('.key');
+                keys.forEach(key => {
+                    key.classList.remove('correct', 'present', 'absent');
+                });
+            }
+
+            showMessage(text, type) {
+                // Удаляем существующие сообщения
+                const existingMessage = document.querySelector('.message');
+                if (existingMessage) {
+                    existingMessage.remove();
+                }
+
+                const message = document.createElement('div');
+                message.className = `message ${type}`;
+                message.textContent = text;
+                message.style.cssText = `
+                    position: fixed;
+                    top: 20px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    padding: 15px 30px;
+                    border-radius: 10px;
+                    color: white;
+                    font-weight: bold;
+                    z-index: 1000;
+                    animation: slideDown 0.3s ease;
+                `;
+
+                if (type === 'error') {
+                    message.style.background = '#f44336';
+                } else {
+                    message.style.background = '#4CAF50';
+                }
+
+                document.body.appendChild(message);
+
+                // Удаляем сообщение через 3 секунды
+                setTimeout(() => {
+                    if (message.parentNode) {
+                        message.remove();
+                    }
+                }, 3000);
+            }
+        }
+
+        // Инициализация игры при загрузке страницы
+        document.addEventListener('DOMContentLoaded', function() {
+            const game = new WordleGame();
+            
+            // Сброс подсветки клавиатуры при новой игре
+            document.addEventListener('click', function(e) {
+                if (e.target && e.target.textContent === 'Новая игра') {
+                    setTimeout(() => {
+                        game.resetKeyboardHighlight();
+                    }, 100);
+                }
+            });
+        });
+
+        // Добавляем CSS анимацию для сообщений
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideDown {
+                from {
+                    opacity: 0;
+                    transform: translateX(-50%) translateY(-20px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateX(-50%) translateY(0);
+                }
+            }
+        `;
+        document.head.appendChild(style);
+        
+        // Функция для создания звука разочарования
+        function playDisappointmentSound() {
+            // Проверяем, включены ли звуки
+            const soundEnabled = document.getElementById('soundEnabled');
+            if (!soundEnabled || !soundEnabled.checked) {
+                return;
+            }
+            
+            try {
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Создаем низкий, грустный звук
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                // Настраиваем звук: низкая частота, медленное затухание
+                oscillator.frequency.setValueAtTime(150, audioContext.currentTime); // Низкая частота
+                oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.5); // Еще ниже
+                
+                // Настройки громкости
+                gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
+                
+                // Тип волны для более грустного звука
+                oscillator.type = 'sawtooth';
+                
+                // Воспроизводим звук
+                oscillator.start(audioContext.currentTime);
+                oscillator.stop(audioContext.currentTime + 0.8);
+                
+            } catch (error) {
+                console.log('Не удалось воспроизвести звук:', error);
+            }
+        }
+        
+        // Функции для работы с модальным окном настроек
+        function openSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Блокируем прокрутку фона
+        }
+        
+        function closeSettings() {
+            const modal = document.getElementById('settingsModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Восстанавливаем прокрутку
+        }
+        
+        // Закрытие модального окна при клике вне его
+        window.onclick = function(event) {
+            const modal = document.getElementById('settingsModal');
+            if (event.target === modal) {
+                closeSettings();
+            }
+        }
+        
+        // Закрытие модального окна по клавише Escape
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeSettings();
+            }
+        });
+        
+        // Функция для переключения состояния блока правил
+        function toggleRules() {
+            const rulesBlock = document.getElementById('rulesBlock');
+            const rulesToggle = document.getElementById('rulesToggle');
+            
+            rulesBlock.classList.toggle('collapsed');
+            
+            // Обновляем стрелку
+            if (rulesBlock.classList.contains('collapsed')) {
+                rulesToggle.textContent = '▶';
+            } else {
+                rulesToggle.textContent = '▼';
+            }
+        }
+        
+        // Инициализация: сворачиваем правила на мобильных устройствах
+        document.addEventListener('DOMContentLoaded', function() {
+            if (window.innerWidth <= 600) {
+                const rulesBlock = document.getElementById('rulesBlock');
+                const rulesToggle = document.getElementById('rulesToggle');
+                rulesBlock.classList.add('collapsed');
+                rulesToggle.textContent = '▶';
+            }
+        });
+    </script>
+    
+    <!-- Модальное окно настроек -->
+    <div id="settingsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ Настройки</h2>
+                <span class="close" onclick="closeSettings()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="setting-item">
+                    <label for="soundEnabled">
+                        <input type="checkbox" id="soundEnabled" checked>
+                        🔊 Звуки
+                    </label>
+                    <p class="setting-description">Воспроизводить звук разочарования при полном промахе</p>
+                </div>
+                
+                <div class="setting-item">
+                    <label for="animationsEnabled">
+                        <input type="checkbox" id="animationsEnabled" checked>
+                        ✨ Анимации
+                    </label>
+                    <p class="setting-description">Показывать анимации при вводе букв и результатах</p>
+                </div>
+                
+                <div class="setting-item">
+                    <label for="hintsEnabled">
+                        <input type="checkbox" id="hintsEnabled" checked>
+                        💡 Подсказки
+                    </label>
+                    <p class="setting-description">Показывать подсказки и сообщения об ошибках</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeSettings()" class="btn btn-primary">Готово</button>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
