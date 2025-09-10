@@ -479,6 +479,38 @@
             flex-shrink: 0;
         }
 
+        .key.special {
+            background: #667eea;
+            color: white;
+            border-color: #667eea;
+            min-width: 35px;
+            width: 35px;
+            font-size: 9px;
+        }
+
+        .key.special:hover {
+            background: #5a6fd8;
+            transform: translateY(-1px);
+        }
+
+        .key.enter {
+            background: #28a745;
+            border-color: #28a745;
+        }
+
+        .key.enter:hover {
+            background: #218838;
+        }
+
+        .key.backspace {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .key.backspace:hover {
+            background: #c82333;
+        }
+
         .key:hover {
             background: #e9e9e9;
             transform: scale(1.05);
@@ -614,6 +646,12 @@
                 width: 24px;
                 height: 28px;
                 font-size: 9px;
+            }
+            
+            .key.special {
+                min-width: 28px;
+                width: 28px;
+                font-size: 7px;
             }
             
             /* Сворачиваем правила по умолчанию на мобильных */
@@ -778,6 +816,7 @@
                 <div class="key" data-key="Э">Э</div>
             </div>
             <div class="keyboard-row">
+                <div class="key special backspace" data-key="Backspace">⌫</div>
                 <div class="key" data-key="Я">Я</div>
                 <div class="key" data-key="Ч">Ч</div>
                 <div class="key" data-key="С">С</div>
@@ -788,6 +827,7 @@
                 <div class="key" data-key="Б">Б</div>
                 <div class="key" data-key="Ю">Ю</div>
                 <div class="key" data-key="Ъ">Ъ</div>
+                <div class="key special enter" data-key="Enter">Ввод</div>
             </div>
         </div>
 
@@ -886,7 +926,12 @@
                 keyboard.addEventListener('click', (e) => {
                     if (e.target.classList.contains('key') && !this.isGameOver) {
                         const key = e.target.dataset.key;
-                        if (this.isValidLetter(key)) {
+                        
+                        if (key === 'Enter') {
+                            this.submitWord();
+                        } else if (key === 'Backspace') {
+                            this.handleBackspace();
+                        } else if (this.isValidLetter(key)) {
                             this.handleLetterInput(key);
                         }
                     }
