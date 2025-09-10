@@ -493,6 +493,28 @@
             font-style: italic;
         }
 
+        .attempts-select {
+            width: 100%;
+            padding: 10px 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1em;
+            background-color: white;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: border-color 0.3s ease;
+        }
+
+        .attempts-select:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .attempts-select:hover {
+            border-color: #999;
+        }
+
         .modal-footer {
             padding: 20px 25px;
             text-align: center;
@@ -546,9 +568,9 @@
             font-weight: 600;
             font-size: 12px;
             transition: all 0.15s ease;
-            min-width: 36px;
-            width: 36px;
-            height: 40px;
+            min-width: 39px;
+            width: 39px;
+            height: 43px;
             text-align: center;
             user-select: none;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -562,8 +584,8 @@
             background: #667eea;
             color: white;
             border-color: #667eea;
-            min-width: 50px;
-            width: 50px;
+            min-width: 45px;
+            width: 45px;
             font-size: 10px;
         }
 
@@ -727,12 +749,12 @@
             
             .key {
                 padding: 6px 8px;
-                min-width: 28px;
-                width: 28px;
-                height: 32px;
+                min-width: 30px;
+                width: 30px;
+                height: 34px;
                 font-size: 10px;
                 flex: 1;
-                max-width: 36px;
+                max-width: 39px;
             }
             
             .key.special {
@@ -756,9 +778,9 @@
                 }
                 
                 .key {
-                    min-width: 24px;
-                    width: 24px;
-                    height: 28px;
+                    min-width: 25px;
+                    width: 25px;
+                    height: 30px;
                     font-size: 8px;
                     padding: 4px 5px;
                 }
@@ -940,7 +962,6 @@
                 <div class="key" data-key="Ь">Ь</div>
                 <div class="key" data-key="Б">Б</div>
                 <div class="key" data-key="Ю">Ю</div>
-                <div class="key" data-key="Ъ">Ъ</div>
                 <div class="key special enter" data-key="Enter">Ввод</div>
             </div>
         </div>
@@ -983,6 +1004,7 @@
                 this.currentCol = 0;
                 this.gameBoard = document.getElementById('gameBoard');
                 this.isGameOver = false;
+                this.maxAttempts = 6; // Количество попыток по умолчанию
                 this.init();
             }
 
@@ -991,8 +1013,14 @@
                 this.setupKeyboardListeners();
                 this.setupModeListeners();
                 this.setupModalListeners();
-                this.updateCurrentRow();
-                this.focusCurrentCell();
+                this.setupSettingsListeners();
+                
+                // Небольшая задержка, чтобы DOM полностью загрузился
+                setTimeout(() => {
+                    this.updateGameBoard(); // Обновляем игровое поле при инициализации
+                    this.updateCurrentRow();
+                    this.focusCurrentCell();
+                }, 100);
             }
 
             updateCurrentRow() {
@@ -1156,8 +1184,67 @@
                 }
             }
 
+            setupSettingsListeners() {
+                const attemptsSelect = document.getElementById('attemptsCount');
+                if (attemptsSelect) {
+                    attemptsSelect.addEventListener('change', (e) => {
+                        this.maxAttempts = parseInt(e.target.value);
+                        console.log('Settings changed, new maxAttempts:', this.maxAttempts);
+                        this.updateGameBoard();
+                    });
+                }
+            }
+
+            updateGameBoard() {
+                // Обновляем количество строк в зависимости от выбранного количества попыток
+                const gameBoard = document.getElementById('gameBoard');
+                const currentMode = document.querySelector('input[name="gameMode"]:checked');
+                
+                console.log('updateGameBoard called, mode:', currentMode?.value, 'maxAttempts:', this.maxAttempts);
+                
+                if (currentMode && currentMode.value === 'GUESS') {
+                    // Скрываем/показываем только строки для ввода (с input-cell)
+                    const allRows = gameBoard.querySelectorAll('.word-row');
+                    let inputRowIndex = 0;
+                    
+                    console.log('Found', allRows.length, 'rows total');
+                    
+                    allRows.forEach((rowElement, index) => {
+                        // Проверяем, есть ли в строке ячейки для ввода
+                        const hasInputCells = rowElement.querySelectorAll('.input-cell').length > 0;
+                        
+                        console.log(`Row ${index}: hasInputCells=${hasInputCells}, inputRowIndex=${inputRowIndex}`);
+                        
+                        if (hasInputCells) {
+                            // Это строка для ввода
+                            if (inputRowIndex < this.maxAttempts) {
+                                rowElement.style.display = 'flex';
+                                console.log(`Showing input row ${inputRowIndex}`);
+                            } else {
+                                rowElement.style.display = 'none';
+                                console.log(`Hiding input row ${inputRowIndex}`);
+                            }
+                            inputRowIndex++;
+                        } else {
+                            // Это строка с результатом - всегда показываем
+                            rowElement.style.display = 'flex';
+                            console.log(`Showing result row ${index}`);
+                        }
+                    });
+                } else {
+                    // В режиме "Слово дня" показываем все строки
+                    const allRows = gameBoard.querySelectorAll('.word-row');
+                    allRows.forEach(rowElement => {
+                        rowElement.style.display = 'flex';
+                    });
+                }
+            }
+
             switchMode(mode) {
                 console.log('Switching to mode:', mode);
+                
+                // Обновляем игровое поле при переключении режима
+                this.updateGameBoard();
                 
                 // Отправляем запрос на сервер для переключения режима
                 const form = document.createElement('form');
@@ -1423,8 +1510,9 @@
                                 const attempts = result.gameState.guesses.length;
                                 this.showGameResultModal(true, attempts, result.gameState.targetWord);
                                 this.isGameOver = true;
-                            } else if (result.gameState.status === 'LOST') {
-                                this.showGameResultModal(false, 6, result.gameState.targetWord);
+                            } else if (result.gameState.status === 'LOST' || this.currentRow >= this.maxAttempts - 1) {
+                                // Игра окончена - либо проигрыш, либо достигнуто максимальное количество попыток
+                                this.showGameResultModal(false, this.maxAttempts, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else {
                                 // Переходим к следующей строке
@@ -1679,19 +1767,18 @@
                 </div>
                 
                 <div class="setting-item">
-                    <label for="animationsEnabled">
-                        <input type="checkbox" id="animationsEnabled" checked>
-                        ✨ Анимации
+                    <label for="attemptsCount">
+                        🎯 Угадаю слово за:
                     </label>
-                    <p class="setting-description">Показывать анимации при вводе букв и результатах</p>
-                </div>
-                
-                <div class="setting-item">
-                    <label for="hintsEnabled">
-                        <input type="checkbox" id="hintsEnabled" checked>
-                        💡 Подсказки
-                    </label>
-                    <p class="setting-description">Показывать подсказки и сообщения об ошибках</p>
+                    <select id="attemptsCount" class="attempts-select">
+                        <option value="1">1 попытку</option>
+                        <option value="2">2 попытки</option>
+                        <option value="3">3 попытки</option>
+                        <option value="4">4 попытки</option>
+                        <option value="5">5 попыток</option>
+                        <option value="6" selected>6 попыток</option>
+                    </select>
+                    <p class="setting-description">Количество попыток в режиме "Угадывать" (от 1 до 6)</p>
                 </div>
             </div>
             <div class="modal-footer">
