@@ -214,6 +214,18 @@
             border: 2px solid #e9ecef;
         }
 
+        .time-info {
+            background: #e8f4fd;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.2em;
+            text-align: center;
+            color: #2c5aa0;
+            border: 2px solid #b3d9ff;
+            font-weight: 600;
+        }
+
         .status.won {
             color: #4CAF50;
         }
@@ -1005,6 +1017,8 @@
                 this.gameBoard = document.getElementById('gameBoard');
                 this.isGameOver = false;
                 this.maxAttempts = 6; // Количество попыток по умолчанию
+                this.gameStartTime = null; // Время начала игры
+                this.gameEndTime = null; // Время окончания игры
                 this.init();
             }
 
@@ -1021,6 +1035,20 @@
                     this.updateCurrentRow();
                     this.focusCurrentCell();
                 }, 100);
+            }
+
+            // Форматирование времени в формат MM:ss
+            formatTime(seconds) {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }
+
+            // Получение времени игры в секундах
+            getGameTime() {
+                if (!this.gameStartTime) return 0;
+                const endTime = this.gameEndTime || new Date();
+                return Math.floor((endTime - this.gameStartTime) / 1000);
             }
 
             updateCurrentRow() {
@@ -1076,6 +1104,11 @@
                         this.moveDown();
                     } else if (this.isValidLetter(e.key)) {
                         e.preventDefault();
+                        // Запускаем таймер при первом вводе
+                        if (!this.gameStartTime) {
+                            this.gameStartTime = new Date();
+                            console.log('Game timer started');
+                        }
                         this.handleLetterInput(e.key.toUpperCase());
                     }
                 });
@@ -1508,10 +1541,12 @@
                             // Проверяем статус игры
                             if (result.gameState.status === 'WON') {
                                 const attempts = result.gameState.guesses.length;
+                                this.gameEndTime = new Date(); // Останавливаем таймер
                                 this.showGameResultModal(true, attempts, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else if (result.gameState.status === 'LOST' || this.currentRow >= this.maxAttempts - 1) {
                                 // Игра окончена - либо проигрыш, либо достигнуто максимальное количество попыток
+                                this.gameEndTime = new Date(); // Останавливаем таймер
                                 this.showGameResultModal(false, this.maxAttempts, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else {
@@ -1551,16 +1586,22 @@
                 const modal = document.getElementById('gameResultModal');
                 const content = document.getElementById('gameResultContent');
                 
+                // Получаем время игры
+                const gameTime = this.getGameTime();
+                const timeText = this.formatTime(gameTime);
+                
                 if (isWin) {
                     content.innerHTML = `
                         <h2 class="success-message">🎉 Поздравляем!</h2>
                         <p>Вы угадали слово за <strong>${attempts}</strong> попыт${attempts === 1 ? 'ку' : attempts < 5 ? 'ки' : 'ок'}!</p>
+                        <p class="time-info">⏱️ Вам понадобилось: <strong>${timeText}</strong></p>
                     `;
                 } else {
                     content.innerHTML = `
                         <h2 class="failure-message">😔 Игра окончена</h2>
                         <p>К сожалению, вы не угадали слово.</p>
                         <div class="target-word">Загаданное слово: <strong>${targetWord}</strong></div>
+                        <p class="time-info">⏱️ Время игры: <strong>${timeText}</strong></p>
                     `;
                 }
                 
@@ -1573,6 +1614,10 @@
             }
 
             startNewGame() {
+                // Сбрасываем таймер
+                this.gameStartTime = null;
+                this.gameEndTime = null;
+                
                 // Отправляем запрос на новую игру
                 const form = document.createElement('form');
                 form.method = 'POST';
