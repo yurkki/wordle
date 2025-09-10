@@ -1,0 +1,20 @@
+# Исключаем ненужные файлы из Docker контекста
+.git
+.gitignore
+README.md
+DEPLOY.md
+*.md
+target/
+build/
+.gradle/
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+*.log
+.DS_Store
+Thumbs.db
+
+# Исключаем тестовые файлы
+src/test/
