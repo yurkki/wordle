@@ -119,22 +119,40 @@ public class WordleService {
 
         WordGuess wordGuess = new WordGuess(upperGuess);
 
-        // Проверяем каждую букву
+        // Сначала отмечаем все буквы как отсутствующие
+        for (int i = 0; i < 5; i++) {
+            wordGuess.getLetters().get(i).setState(LetterState.ABSENT);
+        }
+
+        // Создаем копию загаданного слова для отслеживания использованных букв
+        char[] targetChars = targetWord.toCharArray();
+        boolean[] usedTargetChars = new boolean[5];
+
+        // Первый проход: отмечаем правильные позиции (зеленые)
         for (int i = 0; i < 5; i++) {
             char guessChar = upperGuess.charAt(i);
-            char targetChar = targetWord.charAt(i);
+            if (guessChar == targetChars[i]) {
+                wordGuess.getLetters().get(i).setState(LetterState.CORRECT);
+                usedTargetChars[i] = true;
+            }
+        }
 
-            LetterGuess letterGuess = wordGuess.getLetters().get(i);
-
-            if (guessChar == targetChar) {
-                // Буква на правильном месте
-                letterGuess.setState(LetterState.CORRECT);
-            } else if (targetWord.indexOf(guessChar) != -1) {
-                // Буква есть в слове, но на другом месте
-                letterGuess.setState(LetterState.PRESENT);
-            } else {
-                // Буквы нет в слове
-                letterGuess.setState(LetterState.ABSENT);
+        // Второй проход: отмечаем буквы, которые есть в слове, но на неправильных позициях (желтые)
+        for (int i = 0; i < 5; i++) {
+            char guessChar = upperGuess.charAt(i);
+            
+            // Пропускаем уже правильно размещенные буквы
+            if (wordGuess.getLetters().get(i).getState() == LetterState.CORRECT) {
+                continue;
+            }
+            
+            // Ищем эту букву в загаданном слове на неправильных позициях
+            for (int j = 0; j < 5; j++) {
+                if (!usedTargetChars[j] && targetChars[j] == guessChar) {
+                    wordGuess.getLetters().get(i).setState(LetterState.PRESENT);
+                    usedTargetChars[j] = true;
+                    break; // Используем букву только один раз
+                }
             }
         }
 
