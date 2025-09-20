@@ -25,7 +25,7 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            padding: 40px;
+            padding: 30px;
             max-width: 500px;
             width: 100%;
         }
@@ -33,7 +33,7 @@
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             font-size: 2.5em;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
@@ -53,7 +53,7 @@
 
         .mode-selector {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
         }
 
         .mode-toggle {
@@ -96,7 +96,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             position: relative;
         }
 
@@ -246,25 +246,25 @@
         .game-board {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            margin-bottom: 30px;
+            gap: 6px;
+            margin-bottom: 20px;
         }
 
         .word-row {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             justify-content: center;
         }
 
         .letter-cell {
-            width: 60px;
-            height: 60px;
+            width: 50px;
+            height: 50px;
             border: 2px solid #ddd;
             border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.8em;
+            font-size: 1.6em;
             font-weight: bold;
             text-transform: uppercase;
             transition: all 0.3s ease;
@@ -864,9 +864,9 @@
             }
             
             .letter-cell {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5em;
+                width: 45px;
+                height: 45px;
+                font-size: 1.4em;
             }
             
             .keyboard {
@@ -902,6 +902,21 @@
             
             /* Специальные стили для iPhone 14 Pro и узких экранов */
             @media (max-width: 430px) {
+                .letter-cell {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.2em;
+                }
+                
+                .game-board {
+                    gap: 4px;
+                    margin-bottom: 15px;
+                }
+                
+                .word-row {
+                    gap: 4px;
+                }
+                
                 .keyboard {
                     padding: 12px;
                     margin: 4px 0 0 0;
