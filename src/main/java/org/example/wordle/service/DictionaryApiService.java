@@ -6,6 +6,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Map;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +29,12 @@ public class DictionaryApiService {
     public DictionaryApiService() {
         this.restTemplate = new RestTemplate();
     }
+    
+    @PostConstruct
+    public void init() {
+        System.out.println("DictionaryApiService initialized with API key: " + 
+            (yandexApiKey != null && !yandexApiKey.isEmpty() ? "SET" : "NOT SET"));
+    }
 
     /**
      * Проверяет слово через Яндекс.Словарь API
@@ -44,6 +51,7 @@ public class DictionaryApiService {
 
         // Если нет ключа API, используем fallback на локальный словарь
         if (yandexApiKey == null || yandexApiKey.isEmpty()) {
+            System.out.println("API key not set, using fallback validation for word: " + word);
             return checkWordInLocalDictionary(word);
         }
 
