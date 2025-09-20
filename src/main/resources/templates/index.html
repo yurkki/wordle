@@ -677,7 +677,7 @@
             display: flex;
             flex-direction: column;
             gap: 8px;
-            margin: 30px 0 0 0;
+            margin: 15px 0 0 0;
             padding: 20px;
             background: #f8f9fa;
             border-radius: 12px;
@@ -871,7 +871,7 @@
             
             .keyboard {
                 padding: 16px;
-                margin: 20px 0 0 0;
+                margin: 10px 0 0 0;
                 gap: 6px;
                 width: 100%;
                 box-sizing: border-box;
@@ -904,7 +904,7 @@
             @media (max-width: 430px) {
                 .keyboard {
                     padding: 12px;
-                    margin: 15px 0 0 0;
+                    margin: 8px 0 0 0;
                     width: 100%;
                     box-sizing: border-box;
                 }
@@ -1164,14 +1164,21 @@
             formatTime(seconds) {
                 const minutes = Math.floor(seconds / 60);
                 const remainingSeconds = seconds % 60;
-                return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                const formatted = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+                console.log('Time formatted:', seconds, '->', formatted);
+                return formatted;
             }
 
             // Получение времени игры в секундах
             getGameTime() {
-                if (!this.gameStartTime) return 0;
+                if (!this.gameStartTime) {
+                    console.log('Game timer not started');
+                    return 0;
+                }
                 const endTime = this.gameEndTime || new Date();
-                return Math.floor((endTime - this.gameStartTime) / 1000);
+                const timeInSeconds = Math.floor((endTime - this.gameStartTime) / 1000);
+                console.log('Game time calculated:', timeInSeconds, 'seconds');
+                return timeInSeconds;
             }
 
             updateCurrentRow() {
@@ -1244,6 +1251,12 @@
                 keyboard.addEventListener('click', (e) => {
                     if (e.target.classList.contains('key') && !this.isGameOver) {
                         const key = e.target.dataset.key;
+                        
+                        // Запускаем таймер при первом вводе
+                        if (!this.gameStartTime) {
+                            this.gameStartTime = new Date();
+                            console.log('Game timer started (mobile)');
+                        }
                         
                         if (key === 'Enter') {
                             this.submitWord();
@@ -1639,11 +1652,13 @@
                             if (result.gameState.status === 'WON') {
                                 const attempts = result.gameState.guesses.length;
                                 this.gameEndTime = new Date(); // Останавливаем таймер
+                                console.log('Game timer stopped (WIN)');
                                 this.showGameResultModal(true, attempts, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else if (result.gameState.status === 'LOST' || this.currentRow >= this.maxAttempts - 1) {
                                 // Игра окончена - либо проигрыш, либо достигнуто максимальное количество попыток
                                 this.gameEndTime = new Date(); // Останавливаем таймер
+                                console.log('Game timer stopped (LOSE)');
                                 this.showGameResultModal(false, this.maxAttempts, result.gameState.targetWord);
                                 this.isGameOver = true;
                             } else {
@@ -1682,6 +1697,10 @@
             showGameResultModal(isWin, attempts, targetWord) {
                 const modal = document.getElementById('gameResultModal');
                 const content = document.getElementById('gameResultContent');
+                
+                console.log('Showing game result modal:', { isWin, attempts, targetWord });
+                console.log('Game start time:', this.gameStartTime);
+                console.log('Game end time:', this.gameEndTime);
                 
                 // Получаем время игры
                 const gameTime = this.getGameTime();
