@@ -41,7 +41,7 @@
 
         .game-info {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             color: #666;
         }
 
@@ -91,12 +91,6 @@
             background: #0056b3;
         }
 
-        .daily-info {
-            margin-top: 10px;
-            font-size: 0.9em;
-            color: #666;
-            font-style: italic;
-        }
 
         .header-container {
             display: flex;
@@ -112,15 +106,6 @@
             text-align: center;
         }
 
-        .header-buttons {
-            display: flex;
-            gap: 10px;
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
-        }
-
         .settings-btn {
             background: #f8f9fa;
             border: none;
@@ -134,11 +119,26 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .stats-btn {
+            left: 0;
+        }
+
+        .settings-btn:not(.stats-btn) {
+            right: 0;
         }
 
         .settings-btn:hover {
             background: #e9ecef;
-            transform: scale(1.1);
+            transform: translateY(-50%) scale(1.1);
+        }
+
+        .stats-btn:hover {
+            transform: translateY(-50%) scale(1.1);
         }
 
         /* Стили для модального окна с результатом игры */
@@ -994,15 +994,13 @@
     <div class="container">
         <!-- Заголовок с кнопками -->
         <div class="header-container">
+            <button id="statsBtn" onclick="openStats()" title="Статистика дня" class="settings-btn stats-btn">
+                📊
+            </button>
             <h1>WORDLE</h1>
-            <div class="header-buttons">
-                <button id="statsBtn" onclick="openStats()" title="Статистика дня" class="settings-btn">
-                    📊
-                </button>
-                <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
-                    ⚙️
-                </button>
-            </div>
+            <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
+                ⚙️
+            </button>
         </div>
         
         <!-- Переключатель режимов -->
@@ -1014,17 +1012,13 @@
                 <input type="radio" id="mode-daily" name="gameMode" value="daily" th:checked="${gameState.gameMode == T(org.example.wordle.model.GameMode).DAILY}">
                 <label for="mode-daily">Слово дня</label>
             </div>
-            <div class="daily-info" id="dailyInfo" th:style="${gameState.gameMode == T(org.example.wordle.model.GameMode).DAILY} ? 'display: block;' : 'display: none;'">
-                <span id="dailyDate" th:data-date="${todayDate}">Слово дня на <span th:text="${todayDate}">сегодня</span></span>
-            </div>
         </div>
         
         <div class="game-info">
             <div class="status" th:classappend="${gameState.status.name().toLowerCase()}" 
                  th:text="${gameState.status == T(org.example.wordle.model.GameStatus).WON ? 'Поздравляем! Вы выиграли!' : 
                           gameState.status == T(org.example.wordle.model.GameStatus).LOST ? 'Игра окончена. Загаданное слово: ' + gameState.targetWord : 
-                          'Угадайте слово из 5 букв'}">
-                Угадайте слово из 5 букв
+                          ''}">
             </div>
         </div>
 
@@ -1264,29 +1258,14 @@
 
             setupModeListeners() {
                 const modeInputs = document.querySelectorAll('input[name="gameMode"]');
-                const dailyInfo = document.getElementById('dailyInfo');
-                const dailyDate = document.getElementById('dailyDate');
                 
                 console.log('Setting up mode listeners, found inputs:', modeInputs.length);
                 
-                // Устанавливаем дату для режима "Слово дня"
-                if (dailyInfo && dailyDate) {
-                    const date = dailyDate.dataset.date || 'сегодня';
-                    dailyDate.innerHTML = 'Слово дня на <strong>' + date + '</strong>';
-                    console.log('Daily info setup with date:', date);
-                }
 
                 // Инициализируем состояние переключателя
                 const currentMode = document.querySelector('input[name="gameMode"]:checked');
                 if (currentMode) {
                     console.log('Current mode:', currentMode.value);
-                    if (dailyInfo) {
-                        if (currentMode.value === 'daily') {
-                            dailyInfo.style.display = 'block';
-                        } else {
-                            dailyInfo.style.display = 'none';
-                        }
-                    }
                 }
 
                 modeInputs.forEach((input, index) => {
@@ -1297,17 +1276,6 @@
                         
                         if (e.target.checked) {
                             const mode = e.target.value;
-                            
-                            // Показываем/скрываем информацию о дне
-                            if (dailyInfo) {
-                                if (mode === 'daily') {
-                                    dailyInfo.style.display = 'block';
-                                    console.log('Showing daily info');
-                                } else {
-                                    dailyInfo.style.display = 'none';
-                                    console.log('Hiding daily info');
-                                }
-                            }
                             
                             // Переключаем режим игры
                             this.switchMode(mode);
