@@ -67,7 +67,7 @@ public class WordleController {
                 response.put("error", "Слово должно содержать ровно 5 букв");
             } else if (!wordleService.isValidWord(word)) {
                 response.put("success", false);
-                response.put("error", "Слово должно содержать только русские буквы");
+                response.put("error", "Введено неизвестное слово");
             } else {
                 WordGuess guess = wordleService.processGuess(word, gameState);
                 response.put("success", true);
@@ -174,6 +174,7 @@ public class WordleController {
         response.put("message", "Wordle Game is running!");
         response.put("status", "UP");
         response.put("timestamp", String.valueOf(System.currentTimeMillis()));
+        response.put("dictionary", wordleService.getDictionaryStats());
         return ResponseEntity.ok(response);
     }
 }
