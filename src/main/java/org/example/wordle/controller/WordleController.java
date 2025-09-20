@@ -3,6 +3,7 @@ package org.example.wordle.controller;
 import org.example.wordle.model.GameState;
 import org.example.wordle.model.GameMode;
 import org.example.wordle.model.WordGuess;
+import org.example.wordle.model.DailyStats;
 import org.example.wordle.service.WordleService;
 import org.example.wordle.service.DailyWordService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 
 import jakarta.servlet.http.HttpSession;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -176,5 +178,50 @@ public class WordleController {
         response.put("timestamp", String.valueOf(System.currentTimeMillis()));
         response.put("dictionary", wordleService.getDictionaryStats());
         return ResponseEntity.ok(response);
+    }
+    
+    /**
+     * Получает статистику дня
+     */
+    @GetMapping("/api/stats/daily")
+    @ResponseBody
+    public ResponseEntity<DailyStats> getDailyStats() {
+        try {
+            DailyStats stats = wordleService.getDailyStats();
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.err.println("Error getting daily stats: " + e.getMessage());
+            return ResponseEntity.status(500).build();
+        }
+    }
+    
+    /**
+     * Получает статистику дня с результатом конкретного игрока
+     */
+    @GetMapping("/api/stats/daily/player/{playerId}")
+    @ResponseBody
+    public ResponseEntity<DailyStats> getDailyStatsWithPlayer(@PathVariable String playerId) {
+        try {
+            DailyStats stats = wordleService.getDailyStatsWithPlayerResult(playerId);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.err.println("Error getting daily stats for player: " + e.getMessage());
+            return ResponseEntity.status(500).build();
+        }
+    }
+    
+    /**
+     * Получает статистику за последние дни
+     */
+    @GetMapping("/api/stats/recent")
+    @ResponseBody
+    public ResponseEntity<List<DailyStats>> getRecentStats(@RequestParam(defaultValue = "7") int days) {
+        try {
+            List<DailyStats> stats = wordleService.getRecentStats(days);
+            return ResponseEntity.ok(stats);
+        } catch (Exception e) {
+            System.err.println("Error getting recent stats: " + e.getMessage());
+            return ResponseEntity.status(500).build();
+        }
     }
 }

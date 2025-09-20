@@ -112,6 +112,15 @@
             text-align: center;
         }
 
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
         .settings-btn {
             background: #f8f9fa;
             border: none;
@@ -125,15 +134,11 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            position: absolute;
-            right: 0;
-            top: 50%;
-            transform: translateY(-50%);
         }
 
         .settings-btn:hover {
             background: #e9ecef;
-            transform: translateY(-50%) scale(1.1);
+            transform: scale(1.1);
         }
 
         /* Стили для модального окна с результатом игры */
@@ -527,6 +532,125 @@
             border-color: #999;
         }
 
+        /* Стили для статистики */
+        .stats-loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+        }
+
+        .stats-container {
+            padding: 20px 0;
+        }
+
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 2px solid #e9ecef;
+        }
+
+        .stat-number {
+            font-size: 2em;
+            font-weight: bold;
+            color: #007bff;
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 0.9em;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stats-section {
+            margin-bottom: 25px;
+        }
+
+        .stats-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 5px;
+        }
+
+        .attempts-distribution {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .attempt-bar {
+            background: #e9ecef;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+
+        .attempt-bar.filled {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+        }
+
+        .attempt-number {
+            font-weight: bold;
+            font-size: 1.1em;
+        }
+
+        .attempt-count {
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .top-players {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .player-result {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            border-left: 4px solid #007bff;
+        }
+
+        .player-result.current-player {
+            background: #e3f2fd;
+            border-left-color: #2196f3;
+            font-weight: bold;
+        }
+
+        .player-rank {
+            font-weight: bold;
+            color: #007bff;
+            min-width: 30px;
+        }
+
+        .player-attempts {
+            color: #666;
+        }
+
+        .player-time {
+            font-size: 0.8em;
+            color: #999;
+        }
+
         .modal-footer {
             padding: 20px 25px;
             text-align: center;
@@ -868,12 +992,17 @@
 </head>
 <body>
     <div class="container">
-        <!-- Заголовок с кнопкой настроек -->
+        <!-- Заголовок с кнопками -->
         <div class="header-container">
             <h1>WORDLE</h1>
-            <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
-                ⚙️
-            </button>
+            <div class="header-buttons">
+                <button id="statsBtn" onclick="openStats()" title="Статистика дня" class="settings-btn">
+                    📊
+                </button>
+                <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
+                    ⚙️
+                </button>
+            </div>
         </div>
         
         <!-- Переключатель режимов -->
@@ -1766,8 +1895,137 @@
         document.addEventListener('keydown', function(event) {
             if (event.key === 'Escape') {
                 closeSettings();
+                closeStats();
             }
         });
+
+        // Функции для статистики
+        function openStats() {
+            const modal = document.getElementById('statsModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Блокируем прокрутку
+            loadDailyStats();
+        }
+
+        function closeStats() {
+            const modal = document.getElementById('statsModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Восстанавливаем прокрутку
+        }
+
+        async function loadDailyStats() {
+            const statsContent = document.getElementById('statsContent');
+            statsContent.innerHTML = '<div class="stats-loading">Загрузка статистики...</div>';
+
+            try {
+                const response = await fetch('/api/stats/daily');
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки статистики');
+                }
+                
+                const stats = await response.json();
+                displayStats(stats);
+            } catch (error) {
+                console.error('Ошибка загрузки статистики:', error);
+                statsContent.innerHTML = '<div class="stats-loading">Ошибка загрузки статистики</div>';
+            }
+        }
+
+        function displayStats(stats) {
+            const statsContent = document.getElementById('statsContent');
+            
+            let html = `
+                <div class="stats-container">
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.totalPlayers}</div>
+                            <div class="stat-label">Игроков</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.successfulPlayers}</div>
+                            <div class="stat-label">Угадали</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${stats.successRate.toFixed(1)}%</div>
+                            <div class="stat-label">Успешность</div>
+                        </div>
+                    </div>
+            `;
+
+            if (stats.attemptsDistribution && Object.keys(stats.attemptsDistribution).length > 0) {
+                html += `
+                    <div class="stats-section">
+                        <h3>Распределение по попыткам</h3>
+                        <div class="attempts-distribution">
+                `;
+                
+                for (let i = 1; i <= 6; i++) {
+                    const count = stats.attemptsDistribution[i] || 0;
+                    const filled = count > 0 ? 'filled' : '';
+                    html += `
+                        <div class="attempt-bar ${filled}">
+                            <div class="attempt-number">${i}</div>
+                            <div class="attempt-count">${count}</div>
+                        </div>
+                    `;
+                }
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (stats.topPlayers && stats.topPlayers.length > 0) {
+                html += `
+                    <div class="stats-section">
+                        <h3>Лучшие результаты</h3>
+                        <div class="top-players">
+                `;
+                
+                stats.topPlayers.forEach(player => {
+                    const timeStr = player.completedAt ? 
+                        new Date(player.completedAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) : '';
+                    
+                    html += `
+                        <div class="player-result">
+                            <div class="player-rank">#${player.rank}</div>
+                            <div class="player-attempts">${player.attempts} попытка</div>
+                            <div class="player-time">${timeStr}</div>
+                        </div>
+                    `;
+                });
+                
+                html += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            if (stats.totalPlayers === 0) {
+                html += `
+                    <div class="stats-section">
+                        <h3>Пока нет игроков</h3>
+                        <p>Статистика появится после первых игр в режиме дня</p>
+                    </div>
+                `;
+            }
+
+            html += '</div>';
+            statsContent.innerHTML = html;
+        }
+
+        // Обновляем обработчик клика вне модального окна
+        window.onclick = function(event) {
+            const settingsModal = document.getElementById('settingsModal');
+            const statsModal = document.getElementById('statsModal');
+            
+            if (event.target === settingsModal) {
+                closeSettings();
+            } else if (event.target === statsModal) {
+                closeStats();
+            }
+        }
         
         // Функция для переключения состояния блока правил
         function toggleRules() {
@@ -1828,6 +2086,24 @@
             </div>
             <div class="modal-footer">
                 <button onclick="closeSettings()" class="btn btn-primary">Готово</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно статистики -->
+    <div id="statsModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📊 Статистика дня</h2>
+                <span class="close" onclick="closeStats()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div id="statsContent">
+                    <div class="stats-loading">Загрузка статистики...</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeStats()" class="btn btn-primary">Закрыть</button>
             </div>
         </div>
     </div>

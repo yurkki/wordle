@@ -4,6 +4,9 @@ import org.example.wordle.model.*;
 import org.example.wordle.repository.WordsRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.List;
+
 
 /**
  * Сервис для логики игры Wordle
@@ -14,13 +17,16 @@ public class WordleService {
     private final WordsRepository wordsRepository;
     private final DailyWordService dailyWordService;
     private final DictionaryApiService dictionaryApiService;
+    private final StatsService statsService;
 
     public WordleService(WordsRepository wordsRepository, 
                         DailyWordService dailyWordService,
-                        DictionaryApiService dictionaryApiService) {
+                        DictionaryApiService dictionaryApiService,
+                        StatsService statsService) {
         this.wordsRepository = wordsRepository;
         this.dailyWordService = dailyWordService;
         this.dictionaryApiService = dictionaryApiService;
+        this.statsService = statsService;
     }
 
     /**
@@ -144,8 +150,16 @@ public class WordleService {
         // Проверяем результат
         if (upperGuess.equals(targetWord)) {
             gameState.setStatus(GameStatus.WON);
+            // Записываем статистику для режима дня
+            if (gameState.getGameMode() == GameMode.DAILY) {
+                recordGameStats(gameState, true);
+            }
         } else if (gameState.getGuesses().size() >= 6) {
             gameState.setStatus(GameStatus.LOST);
+            // Записываем статистику для режима дня (неудачная игра)
+            if (gameState.getGameMode() == GameMode.DAILY) {
+                recordGameStats(gameState, false);
+            }
         }
 
         return wordGuess;
@@ -163,5 +177,53 @@ public class WordleService {
      */
     public String getDictionaryStats() {
         return String.format("API словари: %s", dictionaryApiService.getApiStatus());
+    }
+    
+    /**
+     * Записывает статистику игры
+     */
+    private void recordGameStats(GameState gameState, boolean success) {
+        if (gameState.getGameMode() != GameMode.DAILY) {
+            return; // Статистика только для режима дня
+        }
+        
+        int attempts = success ? gameState.getGuesses().size() : 0;
+        String playerId = generatePlayerId(); // Простая генерация ID игрока
+        
+        statsService.recordGameStats(
+            LocalDate.now(),
+            attempts,
+            playerId,
+            gameState.getTargetWord()
+        );
+    }
+    
+    /**
+     * Генерирует простой ID игрока (в реальном приложении это может быть сессия или токен)
+     */
+    private String generatePlayerId() {
+        // Простая генерация на основе времени и случайного числа
+        return "player_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 1000);
+    }
+    
+    /**
+     * Получает статистику дня
+     */
+    public DailyStats getDailyStats() {
+        return statsService.getDailyStats(LocalDate.now());
+    }
+    
+    /**
+     * Получает статистику дня с результатом конкретного игрока
+     */
+    public DailyStats getDailyStatsWithPlayerResult(String playerId) {
+        return statsService.getDailyStatsWithPlayerResult(LocalDate.now(), playerId);
+    }
+    
+    /**
+     * Получает статистику за последние дни
+     */
+    public List<DailyStats> getRecentStats(int days) {
+        return statsService.getRecentStats(days);
     }
 }
