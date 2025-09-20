@@ -54,11 +54,20 @@ public class WordleService {
             return false;
         }
         
-        // Нормализуем слово (заменяем ё на е для проверки)
-        String normalizedWord = normalizeWord(word);
+        // Проверяем только, что слово содержит только русские буквы
+        return word.matches("[а-яА-ЯёЁ]{5}");
+    }
+    
+    /**
+     * Проверяет, является ли слово загадываемым словом (есть в списке)
+     */
+    public boolean isTargetWord(String word) {
+        if (word == null || word.length() != 5) {
+            return false;
+        }
         
-        return word.matches("[а-яА-ЯёЁ]{5}") &&
-               wordsRepository.isValidWord(normalizedWord);
+        String normalizedWord = normalizeWord(word);
+        return wordsRepository.isTargetWord(normalizedWord);
     }
     
     /**

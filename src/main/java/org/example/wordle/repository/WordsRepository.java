@@ -68,9 +68,9 @@ public class WordsRepository {
     }
 
     /**
-     * Проверить, является ли слово валидным
+     * Проверить, является ли слово загадываемым словом (есть в списке)
      */
-    public boolean isValidWord(String word) {
+    public boolean isTargetWord(String word) {
         return word != null && validWords.contains(normalizeWord(word));
     }
     
