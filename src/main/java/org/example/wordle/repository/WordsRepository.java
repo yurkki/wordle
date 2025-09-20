@@ -1,24 +1,14 @@
 package org.example.wordle.repository;
 
-import org.springframework.stereotype.Repository;
-
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
-/**
- * Репозиторий для работы со словами
- */
-@Repository
 public class WordsRepository {
 
-    private final List<String> allWords;
-    private final List<String> fiveLetterWords;
-    private final Set<String> validWords;
+    public static List<String> getWordList() {
 
-    public WordsRepository() {
-        this.allWords = Arrays.asList(
+        return Arrays.asList(
                 "АБЗАЦ", "АВТОР", "АГЕНТ", "АДРЕС", "АЗАРТ", "АЗИАТ", "АКТИВ", "АЛМАЗ",
                 "АМПЕР", "АНГАР", "АРБУЗ", "АРЕНА", "АРХИВ", "АТЛАС",
                 "БАГАЖ", "БАЗАР", "БАЙКА", "БАЛЕТ", "БАНАН", "БАРЖА", "БАСНЯ", "БАТОН", "БЕГУН", "БЕЛКА",
@@ -47,44 +37,5 @@ public class WordsRepository {
                 "МЫСЛЬ", "РИФМА", "БУКВА", "ШКОЛА", "НАУКА", "ХИМИЯ", "ЧИСЛО", "ПАПКА",
                 "ТЕКСТ", "ШРИФТ", "СКРИП", "ДОМЕН", "ПОЧТА", "ДРАЙВ"
         );
-
-        // Фильтруем только 5-буквенные слова один раз при инициализации
-        this.fiveLetterWords = allWords.stream()
-                .filter(word -> word.length() == 5)
-                .toList();
-
-        // Создаем Set для быстрой проверки валидности слов
-        this.validWords = new HashSet<>(fiveLetterWords);
-    }
-
-    /**
-     * Получить все слова
-     */
-    public List<String> getAllWords() {
-        return allWords;
-    }
-
-    /**
-     * Получить только 5-буквенные слова
-     */
-    public List<String> getFiveLetterWords() {
-        return fiveLetterWords;
-    }
-
-    /**
-     * Проверить, является ли слово валидным
-     */
-    public boolean isValidWord(String word) {
-        return word != null && validWords.contains(word.toUpperCase());
-    }
-
-    /**
-     * Получить случайное 5-буквенное слово
-     */
-    public String getRandomFiveLetterWord() {
-        if (fiveLetterWords.isEmpty()) {
-            throw new IllegalStateException("Нет доступных 5-буквенных слов");
-        }
-        return fiveLetterWords.get((int) (Math.random() * fiveLetterWords.size()));
     }
 }
