@@ -50,10 +50,24 @@ public class WordleService {
      * Проверяет, является ли слово валидным (любое слово из 5 букв)
      */
     public boolean isValidWord(String word) {
-        return word != null &&
-               word.length() == 5 &&
-               word.matches("[а-яА-Я]{5}") &&
-               wordsRepository.isValidWord(word);
+        if (word == null || word.length() != 5) {
+            return false;
+        }
+        
+        // Нормализуем слово (заменяем ё на е для проверки)
+        String normalizedWord = normalizeWord(word);
+        
+        return word.matches("[а-яА-ЯёЁ]{5}") &&
+               wordsRepository.isValidWord(normalizedWord);
+    }
+    
+    /**
+     * Нормализует слово, заменяя ё на е для унификации
+     */
+    private String normalizeWord(String word) {
+        return word.toUpperCase()
+                .replace('Ё', 'Е')
+                .replace('ё', 'Е');
     }
 
     /**

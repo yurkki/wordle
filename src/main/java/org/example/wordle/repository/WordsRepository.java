@@ -4,7 +4,6 @@ import lombok.Getter;
 import org.springframework.stereotype.Repository;
 
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -62,15 +61,26 @@ public class WordsRepository {
                 .filter(word -> word.length() == 5)
                 .toList();
 
-        // Создаем Set для быстрой проверки валидности слов
-        this.validWords = new HashSet<>(fiveLetterWords);
+        // Создаем Set для быстрой проверки валидности слов (нормализованные)
+        this.validWords = fiveLetterWords.stream()
+                .map(this::normalizeWord)
+                .collect(java.util.stream.Collectors.toSet());
     }
 
     /**
      * Проверить, является ли слово валидным
      */
     public boolean isValidWord(String word) {
-        return word != null && validWords.contains(word.toUpperCase());
+        return word != null && validWords.contains(normalizeWord(word));
+    }
+    
+    /**
+     * Нормализует слово, заменяя ё на е для унификации
+     */
+    private String normalizeWord(String word) {
+        return word.toUpperCase()
+                .replace('Ё', 'Е')
+                .replace('ё', 'Е');
     }
 
     /**
