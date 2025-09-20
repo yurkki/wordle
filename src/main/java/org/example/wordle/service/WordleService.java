@@ -4,7 +4,6 @@ import org.example.wordle.model.*;
 import org.example.wordle.repository.WordsRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
 
 /**
  * Сервис для логики игры Wordle
@@ -12,30 +11,19 @@ import java.util.*;
 @Service
 public class WordleService {
 
-    private final List<String> wordList = WordsRepository.getWordList();
-    private final Set<String> validWords;
-
+    private final WordsRepository wordsRepository;
     private final DailyWordService dailyWordService;
 
-    public WordleService(DailyWordService dailyWordService) {
+    public WordleService(WordsRepository wordsRepository, DailyWordService dailyWordService) {
+        this.wordsRepository = wordsRepository;
         this.dailyWordService = dailyWordService;
-
-        // Проверяем, что все слова имеют длину 5 букв
-        for (String word : wordList) {
-            if (word.length() != 5) {
-                throw new IllegalArgumentException("Слово '" + word + "' имеет длину " + word.length() + " букв, ожидается 5");
-            }
-        }
-
-        this.validWords = new HashSet<>(wordList);
     }
 
     /**
      * Создает новую игру со случайным словом в режиме угадывания
      */
     public GameState createNewGame() {
-        Random random = new Random();
-        String targetWord = wordList.get(random.nextInt(wordList.size()));
+        String targetWord = wordsRepository.getRandomFiveLetterWord();
         return new GameState(targetWord, GameMode.GUESS);
     }
 
@@ -64,7 +52,8 @@ public class WordleService {
     public boolean isValidWord(String word) {
         return word != null &&
                word.length() == 5 &&
-               word.matches("[а-яА-Я]{5}");
+               word.matches("[а-яА-Я]{5}") &&
+               wordsRepository.isValidWord(word);
     }
 
     /**
@@ -134,7 +123,6 @@ public class WordleService {
      * Получает случайное слово для тестирования
      */
     public String getRandomWord() {
-        Random random = new Random();
-        return wordList.get(random.nextInt(wordList.size()));
+        return wordsRepository.getRandomFiveLetterWord();
     }
 }

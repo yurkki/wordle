@@ -4,7 +4,6 @@ import org.example.wordle.repository.WordsRepository;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,7 +12,11 @@ import java.util.List;
 @Service
 public class DailyWordService {
 
-    private final List<String> dailyWords = WordsRepository.getWordList();
+    private final WordsRepository wordsRepository;
+
+    public DailyWordService(WordsRepository wordsRepository) {
+        this.wordsRepository = wordsRepository;
+    }
     
     /**
      * Получить слово дня для указанной даты
@@ -22,14 +25,11 @@ public class DailyWordService {
         // Используем хеш от даты для получения индекса слова
         int dayOfYear = date.getDayOfYear();
         
-        // Фильтруем только 5-буквенные слова
-        List<String> fiveLetterWords = dailyWords.stream()
-            .filter(word -> word.length() == 5)
-            .toList();
+        // Получаем уже отфильтрованные 5-буквенные слова
+        List<String> fiveLetterWords = wordsRepository.getFiveLetterWords();
         
         if (fiveLetterWords.isEmpty()) {
-            // Если нет 5-буквенных слов, возвращаем первое слово из списка
-            return dailyWords.get(0);
+            throw new IllegalStateException("Нет доступных 5-буквенных слов");
         }
         
         // Используем индекс для выбора из 5-буквенных слов
