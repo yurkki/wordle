@@ -13,10 +13,14 @@ public class WordleService {
 
     private final WordsRepository wordsRepository;
     private final DailyWordService dailyWordService;
+    private final DictionaryApiService dictionaryApiService;
 
-    public WordleService(WordsRepository wordsRepository, DailyWordService dailyWordService) {
+    public WordleService(WordsRepository wordsRepository, 
+                        DailyWordService dailyWordService,
+                        DictionaryApiService dictionaryApiService) {
         this.wordsRepository = wordsRepository;
         this.dailyWordService = dailyWordService;
+        this.dictionaryApiService = dictionaryApiService;
     }
 
     /**
@@ -47,15 +51,20 @@ public class WordleService {
     }
 
     /**
-     * Проверяет, является ли слово валидным (любое слово из 5 букв)
+     * Проверяет, является ли слово валидным (через API словари с fallback)
      */
     public boolean isValidWord(String word) {
         if (word == null || word.length() != 5) {
             return false;
         }
         
-        // Проверяем только, что слово содержит только русские буквы
-        return word.matches("[а-яА-ЯёЁ]{5}");
+        // Проверяем формат слова
+        if (!word.matches("[а-яА-ЯёЁ]{5}")) {
+            return false;
+        }
+        
+        // Используем API сервис с fallback на локальный словарь
+        return dictionaryApiService.isWordValid(word);
     }
     
     /**
@@ -147,5 +156,12 @@ public class WordleService {
      */
     public String getRandomWord() {
         return wordsRepository.getRandomFiveLetterWord();
+    }
+    
+    /**
+     * Получает статистику словаря
+     */
+    public String getDictionaryStats() {
+        return String.format("API словари: %s", dictionaryApiService.getApiStatus());
     }
 }
