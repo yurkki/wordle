@@ -93,6 +93,16 @@ public class WordleService {
                 .replace('Ё', 'Е')
                 .replace('ё', 'Е');
     }
+    
+    /**
+     * Проверяет, являются ли две буквы эквивалентными (Е и Ё считаются одинаковыми)
+     */
+    private boolean areEquivalentLetters(char letter1, char letter2) {
+        // Нормализуем обе буквы и сравниваем
+        char norm1 = normalizeWord(String.valueOf(letter1)).charAt(0);
+        char norm2 = normalizeWord(String.valueOf(letter2)).charAt(0);
+        return norm1 == norm2;
+    }
 
     /**
      * Обрабатывает попытку угадать слово
@@ -119,7 +129,7 @@ public class WordleService {
         // Первый проход: отмечаем правильные позиции (зеленые)
         for (int i = 0; i < 5; i++) {
             char guessChar = upperGuess.charAt(i);
-            if (guessChar == targetChars[i]) {
+            if (guessChar == targetChars[i] || areEquivalentLetters(guessChar, targetChars[i])) {
                 wordGuess.getLetters().get(i).setState(LetterState.CORRECT);
                 usedTargetChars[i] = true;
             }
@@ -136,7 +146,7 @@ public class WordleService {
             
             // Ищем эту букву в загаданном слове на неправильных позициях
             for (int j = 0; j < 5; j++) {
-                if (!usedTargetChars[j] && targetChars[j] == guessChar) {
+                if (!usedTargetChars[j] && (targetChars[j] == guessChar || areEquivalentLetters(guessChar, targetChars[j]))) {
                     wordGuess.getLetters().get(i).setState(LetterState.PRESENT);
                     usedTargetChars[j] = true;
                     break; // Используем букву только один раз
@@ -147,8 +157,8 @@ public class WordleService {
         // Добавляем попытку в игру
         gameState.addGuess(wordGuess);
 
-        // Проверяем результат
-        if (upperGuess.equals(targetWord)) {
+        // Проверяем результат - используем нормализованное сравнение для Е/Ё
+        if (upperGuess.equals(targetWord) || normalizeWord(upperGuess).equals(normalizeWord(targetWord))) {
             gameState.setStatus(GameStatus.WON);
             // Записываем статистику для режима дня
             if (gameState.getGameMode() == GameMode.DAILY) {

@@ -100,12 +100,10 @@ public class DictionaryApiService {
 
             @SuppressWarnings("unchecked")
             Map<String, Object> response = restTemplate.getForObject(url, Map.class);
-            
-            if (response != null) {
-                @SuppressWarnings("unchecked")
-                List<Object> definitions = (List<Object>) response.get("def");
-                return definitions != null && !definitions.isEmpty();
-            }
+
+            @SuppressWarnings("unchecked")
+            List<Object> definitions = (List<Object>) response.get("def");
+            return definitions != null && !definitions.isEmpty();
 
         } catch (HttpClientErrorException e) {
             System.out.println("Яндекс API ошибка: " + e.getStatusCode());
