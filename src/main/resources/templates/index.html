@@ -106,6 +106,15 @@
             text-align: center;
         }
 
+        .header-buttons {
+            display: flex;
+            gap: 10px;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
         .settings-btn {
             background: #f8f9fa;
             border: none;
@@ -119,22 +128,28 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+
+        .stats-btn {
             position: absolute;
+            left: 0;
             top: 50%;
             transform: translateY(-50%);
         }
 
-        .stats-btn {
-            left: 0;
+        .rules-btn {
+            background: #e3f2fd;
+            color: #1976d2;
         }
 
-        .settings-btn:not(.stats-btn) {
-            right: 0;
+        .rules-btn:hover {
+            background: #bbdefb;
+            transform: scale(1.1);
         }
 
         .settings-btn:hover {
             background: #e9ecef;
-            transform: translateY(-50%) scale(1.1);
+            transform: scale(1.1);
         }
 
         .stats-btn:hover {
@@ -663,6 +678,116 @@
             color: #999;
         }
 
+        /* Стили для модального окна правил */
+        .rules-content {
+            padding: 0;
+        }
+
+        .rule-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+
+        .rule-section h3 {
+            margin: 0 0 10px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+
+        .rule-section p {
+            margin: 0;
+            color: #666;
+            line-height: 1.4;
+            font-size: 0.95em;
+        }
+
+        .color-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .color-example {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .letter-example {
+            width: 32px;
+            height: 32px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            text-transform: uppercase;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .letter-example.correct {
+            background: #4CAF50;
+            border-color: #4CAF50;
+        }
+
+        .letter-example.present {
+            background: #FFC107;
+            border-color: #FFC107;
+        }
+
+        .letter-example.absent {
+            background: #9E9E9E;
+            border-color: #9E9E9E;
+        }
+
+        .rules-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .rules-list li {
+            margin-bottom: 10px;
+            padding-left: 20px;
+            position: relative;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .rules-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .mode-rules {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .mode-rule {
+            padding: 12px;
+            background: #e3f2fd;
+            border-radius: 6px;
+            border-left: 3px solid #2196F3;
+            color: #333;
+            line-height: 1.4;
+            font-size: 0.9em;
+        }
+
+        .mode-rule strong {
+            color: #1976d2;
+        }
+
         .modal-footer {
             padding: 20px 25px;
             text-align: center;
@@ -809,73 +934,6 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
         }
 
-        .rules {
-            margin-top: 30px;
-            background: #f8f9fa;
-            border-radius: 10px;
-            border-left: 4px solid #667eea;
-            overflow: hidden;
-        }
-
-        .rules-header {
-            padding: 20px;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            user-select: none;
-            transition: background-color 0.2s ease;
-        }
-
-        .rules-header:hover {
-            background-color: #e9ecef;
-        }
-
-        .rules h3 {
-            color: #333;
-            margin: 0;
-        }
-
-        .rules-toggle {
-            font-size: 18px;
-            color: #667eea;
-            transition: transform 0.3s ease;
-        }
-
-        .rules-content {
-            padding: 0 20px 20px 20px;
-            transition: max-height 0.3s ease, opacity 0.3s ease;
-            overflow: hidden;
-        }
-
-        .rules.collapsed .rules-content {
-            max-height: 0;
-            padding: 0 20px;
-            opacity: 0;
-        }
-
-        .rules.collapsed .rules-toggle {
-            transform: rotate(-90deg);
-        }
-
-        .rules ul {
-            list-style: none;
-            padding-left: 0;
-        }
-
-        .rules li {
-            margin-bottom: 8px;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .rules li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: #4CAF50;
-            font-weight: bold;
-        }
 
         @media (max-width: 600px) {
             .container {
@@ -967,22 +1025,6 @@
                 }
             }
             
-            /* Сворачиваем правила по умолчанию на мобильных */
-            .rules {
-                margin-top: 20px;
-            }
-            
-            .rules-header {
-                padding: 15px;
-            }
-            
-            .rules-content {
-                padding: 0 15px 15px 15px;
-            }
-            
-            .rules.collapsed .rules-content {
-                padding: 0 15px;
-            }
             
             /* Мобильные стили для модального окна */
             .modal-content {
@@ -1026,6 +1068,54 @@
                 height: 35px;
                 font-size: 16px;
             }
+
+            .header-buttons {
+                gap: 8px;
+            }
+
+            .rules-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
+            }
+
+            /* Мобильные стили для модального окна правил */
+            .rule-section {
+                padding: 12px;
+                margin-bottom: 15px;
+            }
+
+            .rule-section h3 {
+                font-size: 1.0em;
+                margin-bottom: 8px;
+            }
+
+            .rule-section p {
+                font-size: 0.9em;
+            }
+
+            .color-examples {
+                gap: 8px;
+            }
+
+            .color-example {
+                gap: 10px;
+            }
+
+            .letter-example {
+                width: 28px;
+                height: 28px;
+                font-size: 1.0em;
+            }
+
+            .mode-rules {
+                gap: 8px;
+            }
+
+            .mode-rule {
+                padding: 10px;
+                font-size: 0.85em;
+            }
         }
     </style>
 </head>
@@ -1040,9 +1130,14 @@
                 📊
             </button>
             <h1>WORDLE</h1>
-            <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
-                ⚙️
-            </button>
+            <div class="header-buttons">
+                <button id="rulesBtn" onclick="openRules()" title="Правила игры" class="settings-btn rules-btn">
+                    ❓
+                </button>
+                <button id="settingsBtn" onclick="openSettings()" title="Настройки" class="settings-btn">
+                    ⚙️
+                </button>
+            </div>
         </div>
         
         <!-- Переключатель режимов -->
@@ -1143,22 +1238,6 @@
             </div>
         </div>
 
-        <div class="rules" id="rulesBlock">
-            <div class="rules-header" onclick="toggleRules()">
-                <h3>Правила игры:</h3>
-                <span class="rules-toggle" id="rulesToggle">▼</span>
-            </div>
-            <div class="rules-content" id="rulesContent">
-                <ul>
-                    <li>Угадайте слово из 5 букв за 6 попыток</li>
-                    <li>Зеленый цвет - буква на правильном месте</li>
-                    <li>Желтый цвет - буква есть в слове, но на другом месте</li>
-                    <li>Серый цвет - буквы нет в слове</li>
-                    <li>Вводите любые слова из 5 русских букв</li>
-                    <li>Используйте стрелки для навигации, Enter для проверки</li>
-                </ul>
-            </div>
-        </div>
     </div>
 
     <!-- Модальное окно с результатом игры -->
@@ -1973,6 +2052,7 @@
             if (event.key === 'Escape') {
                 closeSettings();
                 closeStats();
+                closeRules();
             }
         });
 
@@ -1986,6 +2066,19 @@
 
         function closeStats() {
             const modal = document.getElementById('statsModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto'; // Восстанавливаем прокрутку
+        }
+
+        // Функции для правил игры
+        function openRules() {
+            const modal = document.getElementById('rulesModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden'; // Блокируем прокрутку
+        }
+
+        function closeRules() {
+            const modal = document.getElementById('rulesModal');
             modal.style.display = 'none';
             document.body.style.overflow = 'auto'; // Восстанавливаем прокрутку
         }
@@ -2096,11 +2189,14 @@
         window.onclick = function(event) {
             const settingsModal = document.getElementById('settingsModal');
             const statsModal = document.getElementById('statsModal');
+            const rulesModal = document.getElementById('rulesModal');
             
             if (event.target === settingsModal) {
                 closeSettings();
             } else if (event.target === statsModal) {
                 closeStats();
+            } else if (event.target === rulesModal) {
+                closeRules();
             }
         }
         
@@ -2115,30 +2211,6 @@
             }
         }
 
-        // Функция для переключения состояния блока правил
-        function toggleRules() {
-            const rulesBlock = document.getElementById('rulesBlock');
-            const rulesToggle = document.getElementById('rulesToggle');
-            
-            rulesBlock.classList.toggle('collapsed');
-            
-            // Обновляем стрелку
-            if (rulesBlock.classList.contains('collapsed')) {
-                rulesToggle.textContent = '▶';
-            } else {
-                rulesToggle.textContent = '▼';
-            }
-        }
-        
-        // Инициализация: сворачиваем правила на мобильных устройствах
-        document.addEventListener('DOMContentLoaded', function() {
-            if (window.innerWidth <= 600) {
-                const rulesBlock = document.getElementById('rulesBlock');
-                const rulesToggle = document.getElementById('rulesToggle');
-                rulesBlock.classList.add('collapsed');
-                rulesToggle.textContent = '▶';
-            }
-        });
     </script>
     
     <!-- Модальное окно настроек -->
@@ -2192,6 +2264,58 @@
             </div>
             <div class="modal-footer">
                 <button onclick="closeStats()" class="btn btn-primary">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно правил игры -->
+    <div id="rulesModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ Правила игры</h2>
+                <span class="close" onclick="closeRules()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="rules-content">
+                    <div class="rule-section">
+                        <h3>🎯 Цель игры</h3>
+                        <p>Угадайте слово из 5 букв за 6 попыток</p>
+                    </div>
+                    
+                    <div class="rule-section">
+                        <h3>🎨 Цветовые подсказки</h3>
+                        <div class="color-examples">
+                            <div class="color-example">
+                                <div class="letter-example correct">А</div>
+                                <span>Зеленый - буква на правильном месте</span>
+                            </div>
+                            <div class="color-example">
+                                <div class="letter-example present">Б</div>
+                                <span>Желтый - буква есть в слове, но на другом месте</span>
+                            </div>
+                            <div class="color-example">
+                                <div class="letter-example absent">В</div>
+                                <span>Серый - буквы нет в слове</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    
+                    <div class="rule-section">
+                        <h3>🎮 Режимы игры</h3>
+                        <div class="mode-rules">
+                            <div class="mode-rule">
+                                <strong>Слово дня:</strong> Одно слово для всех игроков, обновляется каждый день
+                            </div>
+                            <div class="mode-rule">
+                                <strong>Угадывать:</strong> Случайные слова, неограниченное количество игр
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeRules()" class="btn btn-primary">Понятно!</button>
             </div>
         </div>
     </div>
