@@ -479,6 +479,8 @@
             box-shadow: 0 8px 25px rgba(0,0,0,0.3);
             animation: slideIn 0.3s ease;
             box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
         }
 
         .modal-header {
@@ -515,6 +517,8 @@
 
         .modal-body {
             padding: 20px;
+            flex: 1;
+            overflow-y: auto;
         }
 
         .setting-item {
