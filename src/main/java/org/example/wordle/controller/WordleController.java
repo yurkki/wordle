@@ -53,7 +53,7 @@ public class WordleController {
      */
     @PostMapping("/api/guess")
     @ResponseBody
-    public Map<String, Object> makeGuessApi(@RequestParam String word, HttpSession session) {
+    public Map<String, Object> makeGuessApi(@RequestParam String word, @RequestParam(required = false) Integer gameTimeSeconds, HttpSession session) {
         Map<String, Object> response = new HashMap<>();
         GameState gameState = (GameState) session.getAttribute("gameState");
         
@@ -65,6 +65,11 @@ public class WordleController {
         try {
             System.out.println("Received guess: " + word);
             System.out.println("Current game state: " + (gameState != null ? gameState.getGameMode() : "null"));
+            
+            // Обновляем время игры, если передано
+            if (gameTimeSeconds != null) {
+                gameState.setGameTimeSeconds(gameTimeSeconds);
+            }
             
             if (word.length() != 5) {
                 response.put("success", false);

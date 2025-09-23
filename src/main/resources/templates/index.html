@@ -1673,12 +1673,13 @@
                 this.isGameOver = true;
 
                 try {
+                    const gameTime = this.getGameTime();
                     const response = await fetch('/api/guess', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/x-www-form-urlencoded',
                         },
-                        body: `word=${encodeURIComponent(word)}`
+                        body: `word=${encodeURIComponent(word)}&gameTimeSeconds=${gameTime}`
                     });
 
                     if (response.ok) {
@@ -2060,8 +2061,8 @@
                 `;
                 
                 stats.topPlayers.forEach(player => {
-                    const timeStr = player.completedAt ? 
-                        new Date(player.completedAt).toLocaleTimeString('ru-RU', {hour: '2-digit', minute: '2-digit'}) : '';
+                    const timeStr = player.gameTimeSeconds ? 
+                        formatGameTime(player.gameTimeSeconds) : '';
                     
                     html += `
                         <div class="player-result">
@@ -2103,6 +2104,17 @@
             }
         }
         
+        // Функция для форматирования времени игры
+        function formatGameTime(seconds) {
+            if (seconds < 60) {
+                return `${seconds}с`;
+            } else {
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                return `${minutes}м ${remainingSeconds}с`;
+            }
+        }
+
         // Функция для переключения состояния блока правил
         function toggleRules() {
             const rulesBlock = document.getElementById('rulesBlock');

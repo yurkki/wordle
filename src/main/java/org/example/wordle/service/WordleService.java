@@ -203,12 +203,14 @@ public class WordleService {
         
         int attempts = success ? gameState.getGuesses().size() : 0;
         String playerId = gameState.getPlayerId();
+        int gameTimeSeconds = gameState.getGameTimeSeconds();
         
         statsService.recordGameStats(
             LocalDate.now(),
             attempts,
             playerId,
-            gameState.getTargetWord()
+            gameState.getTargetWord(),
+            gameTimeSeconds
         );
     }
     

@@ -23,13 +23,14 @@ public class StatsService {
     /**
      * Записывает статистику завершенной игры
      */
-    public void recordGameStats(LocalDate gameDate, int attempts, String playerId, String targetWord) {
+    public void recordGameStats(LocalDate gameDate, int attempts, String playerId, String targetWord, int gameTimeSeconds) {
         GameStats stats = new GameStats(
             gameDate, 
             attempts, 
             LocalDateTime.now(), 
             playerId, 
-            targetWord
+            targetWord,
+            gameTimeSeconds
         );
         
         dailyStats.computeIfAbsent(gameDate, k -> new ArrayList<>()).add(stats);
@@ -66,7 +67,7 @@ public class StatsService {
                 Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact)
             ));
         
-        // Топ игроков (сортировка по попыткам, затем по времени)
+        // Топ игроков (сортировка по попыткам, затем по времени игры)
         List<DailyStats.PlayerResult> topPlayers = dayStats.stream()
             .filter(GameStats::isSuccess)
             .sorted((a, b) -> {
@@ -75,15 +76,16 @@ public class StatsService {
                 if (attemptsCompare != 0) {
                     return attemptsCompare;
                 }
-                // Затем по времени завершения (раньше = лучше)
-                return a.getCompletedAt().compareTo(b.getCompletedAt());
+                // Затем по времени игры (меньше = лучше)
+                return Integer.compare(a.getGameTimeSeconds(), b.getGameTimeSeconds());
             })
             .map(stats -> new DailyStats.PlayerResult(
                 stats.getPlayerId(),
                 stats.getAttempts(),
                 stats.getCompletedAt(),
                 0, // Ранг будет установлен ниже
-                true
+                true,
+                stats.getGameTimeSeconds()
             ))
             .collect(Collectors.toList());
         
@@ -120,7 +122,7 @@ public class StatsService {
         } else {
             // Игрок не угадал или не играл
             dailyStats.setPlayerResult(new DailyStats.PlayerResult(
-                playerId, 0, null, 0, false
+                playerId, 0, null, 0, false, 0
             ));
         }
         

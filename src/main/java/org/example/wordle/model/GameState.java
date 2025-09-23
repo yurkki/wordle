@@ -14,6 +14,7 @@ public class GameState {
     private GameStatus status;
     private GameMode gameMode;
     private String playerId;
+    private int gameTimeSeconds;
     
     public GameState() {
         this.guesses = new ArrayList<>();

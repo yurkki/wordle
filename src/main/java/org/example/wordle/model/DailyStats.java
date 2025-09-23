@@ -67,5 +67,6 @@ public class DailyStats {
         private LocalDateTime completedAt;
         private int rank; // Место в рейтинге (1, 2, 3...)
         private boolean success;
+        private int gameTimeSeconds; // Время игры в секундах
     }
 }

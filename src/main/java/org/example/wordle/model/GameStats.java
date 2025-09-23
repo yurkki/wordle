@@ -31,6 +31,11 @@ public class GameStats {
     private LocalDateTime completedAt;
     
     /**
+     * Время игры в секундах (чистое время)
+     */
+    private int gameTimeSeconds;
+    
+    /**
      * IP адрес игрока (для идентификации уникальных игроков)
      */
     private String playerId;
@@ -52,5 +57,16 @@ public class GameStats {
         this.playerId = playerId;
         this.success = attempts > 0 && attempts <= 6;
         this.targetWord = targetWord;
+        this.gameTimeSeconds = 0; // Будет установлено отдельно
+    }
+    
+    public GameStats(LocalDate gameDate, int attempts, LocalDateTime completedAt, String playerId, String targetWord, int gameTimeSeconds) {
+        this.gameDate = gameDate;
+        this.attempts = attempts;
+        this.completedAt = completedAt;
+        this.playerId = playerId;
+        this.success = attempts > 0 && attempts <= 6;
+        this.targetWord = targetWord;
+        this.gameTimeSeconds = gameTimeSeconds;
     }
 }
