@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Сервис для управления ежедневными словами
@@ -20,11 +21,12 @@ public class DailyWordService {
     
     /**
      * Получить слово дня для указанной даты
+     * 
+     * Алгоритм использует детерминированный seed на основе даты для обеспечения
+     * стабильности в течение дня, но добавляет рандомность для более равномерного
+     * распределения слов по датам.
      */
     public String getWordForDate(LocalDate date) {
-        // Используем хеш от даты для получения индекса слова
-        int dayOfYear = date.getDayOfYear();
-        
         // Получаем уже отфильтрованные 5-буквенные слова
         List<String> fiveLetterWords = wordsRepository.getFiveLetterWords();
         
@@ -32,8 +34,26 @@ public class DailyWordService {
             throw new IllegalStateException("Нет доступных 5-буквенных слов");
         }
         
-        // Используем индекс для выбора из 5-буквенных слов
-        int wordIndex = dayOfYear % fiveLetterWords.size();
+        // Создаем детерминированный seed на основе даты для стабильности в течение дня
+        // Используем более сложную формулу для лучшего распределения
+        long year = date.getYear();
+        int month = date.getMonthValue();
+        int day = date.getDayOfMonth();
+        
+        // Создаем seed с использованием простых чисел для лучшего распределения
+        long seed = year * 10000L + month * 100L + day;
+        seed = seed * 31L + 17L; // Добавляем простые числа для лучшего распределения
+        
+        // Создаем Random с детерминированным seed
+        Random random = new Random(seed);
+        
+        // Добавляем дополнительную рандомность - делаем несколько случайных выборов
+        // и берем последний для более равномерного распределения
+        int wordIndex = 0;
+        for (int i = 0; i < 3; i++) {
+            wordIndex = random.nextInt(fiveLetterWords.size());
+        }
+        
         return fiveLetterWords.get(wordIndex);
     }
     

@@ -18,14 +18,14 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            padding: 20px;
+            padding: 10px;
         }
 
         .container {
             background: white;
             border-radius: 20px;
             box-shadow: 0 20px 40px rgba(0,0,0,0.1);
-            padding: 30px;
+            padding: 20px;
             max-width: 500px;
             width: 100%;
         }
@@ -33,15 +33,15 @@
         h1 {
             text-align: center;
             color: #333;
-            margin-bottom: 20px;
-            font-size: 2.5em;
+            margin-bottom: 15px;
+            font-size: 2.2em;
             font-weight: bold;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
         }
 
         .game-info {
             text-align: center;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             color: #666;
         }
 
@@ -53,7 +53,7 @@
 
         .mode-selector {
             text-align: center;
-            margin-bottom: 15px;
+            margin-bottom: 12px;
         }
 
         .mode-toggle {
@@ -172,24 +172,27 @@
 
         .modal-content {
             background-color: white;
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-            max-width: 500px;
-            width: 90%;
-            min-height: 300px;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            max-width: 400px;
+            width: 85%;
+            max-height: 80vh;
             text-align: center;
             position: relative;
             display: flex;
             flex-direction: column;
             justify-content: center;
+            margin: 10% auto;
+            box-sizing: border-box;
         }
 
         .close {
             position: absolute;
             right: 15px;
-            top: 15px;
-            font-size: 28px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             color: #aaa;
@@ -273,8 +276,8 @@
         .game-board {
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            margin-bottom: 20px;
+            gap: 5px;
+            margin-bottom: 15px;
         }
 
         .word-row {
@@ -401,10 +404,10 @@
         }
 
         .btn {
-            padding: 15px 25px;
-            font-size: 1.1em;
+            padding: 12px 20px;
+            font-size: 1.0em;
             border: none;
-            border-radius: 10px;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
             font-weight: bold;
@@ -467,20 +470,22 @@
 
         .modal-content {
             background-color: #fefefe;
-            margin: 5% auto;
+            margin: 10% auto;
             padding: 0;
-            border-radius: 15px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            border-radius: 12px;
+            width: 85%;
+            max-width: 400px;
+            max-height: 80vh;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
             animation: slideIn 0.3s ease;
+            box-sizing: border-box;
         }
 
         .modal-header {
-            padding: 20px 25px;
+            padding: 15px 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
-            border-radius: 15px 15px 0 0;
+            border-radius: 12px 12px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -488,15 +493,20 @@
 
         .modal-header h2 {
             margin: 0;
-            font-size: 1.5em;
+            font-size: 1.3em;
         }
 
         .close {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
             color: white;
-            font-size: 28px;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             transition: opacity 0.3s ease;
+            line-height: 1;
         }
 
         .close:hover {
@@ -504,7 +514,7 @@
         }
 
         .modal-body {
-            padding: 25px;
+            padding: 20px;
         }
 
         .setting-item {
@@ -789,7 +799,7 @@
         }
 
         .modal-footer {
-            padding: 20px 25px;
+            padding: 15px 20px;
             text-align: center;
             border-top: 1px solid #eee;
         }
@@ -814,8 +824,8 @@
             display: flex;
             flex-direction: column;
             gap: 4px;
-            margin: 8px 0 0 0;
-            padding: 25px;
+            margin: 6px 0 0 0;
+            padding: 18px;
             background: #f8f9fa;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0,0,0,0.1);
@@ -887,6 +897,7 @@
             background: #ffffff;
             border-color: #ddd;
             color: #333;
+            font-size: 1.2em;
         }
 
         .key.backspace:hover {
@@ -937,21 +948,21 @@
 
         @media (max-width: 600px) {
             .container {
-                padding: 20px;
-                margin: 10px;
+                padding: 15px;
+                margin: 5px;
                 max-width: 100%;
                 overflow-x: hidden;
             }
             
             .letter-cell {
-                width: 55px;
-                height: 55px;
-                font-size: 1.6em;
+                width: 50px;
+                height: 50px;
+                font-size: 1.5em;
             }
             
             .keyboard {
-                padding: 20px;
-                margin: 5px 0 0 0;
+                padding: 15px;
+                margin: 4px 0 0 0;
                 gap: 3px;
                 width: 98%;
                 max-width: 480px;
@@ -984,23 +995,23 @@
             /* Специальные стили для iPhone 14 Pro и узких экранов */
             @media (max-width: 430px) {
                 .letter-cell {
-                    width: 50px;
-                    height: 50px;
-                    font-size: 1.4em;
+                    width: 45px;
+                    height: 45px;
+                    font-size: 1.3em;
                 }
                 
                 .game-board {
-                    gap: 4px;
-                    margin-bottom: 15px;
+                    gap: 3px;
+                    margin-bottom: 12px;
                 }
                 
                 .word-row {
-                    gap: 4px;
+                    gap: 3px;
                 }
                 
                 .keyboard {
-                    padding: 18px;
-                    margin: 4px 0 0 0;
+                    padding: 12px;
+                    margin: 3px 0 0 0;
                     width: 99%;
                     max-width: 420px;
                     box-sizing: border-box;
@@ -1012,47 +1023,106 @@
                 }
                 
                 .key {
-                    min-width: 26px;
-                    width: 26px;
-                    height: 36px;
-                    font-size: 8px;
-                    padding: 4px 5px;
+                    min-width: 24px;
+                    width: 24px;
+                    height: 32px;
+                    font-size: 7px;
+                    padding: 3px 4px;
                 }
                 
                 .key.special {
-                    min-width: 32px;
-                    width: 32px;
-                    font-size: 7px;
+                    min-width: 28px;
+                    width: 28px;
+                    font-size: 6px;
                 }
             }
             
+            /* Дополнительная оптимизация для очень маленьких экранов */
+            @media (max-width: 375px) {
+                body {
+                    padding: 5px;
+                }
+                
+                .container {
+                    padding: 12px;
+                    margin: 2px;
+                }
+                
+                h1 {
+                    font-size: 1.8em;
+                    margin-bottom: 10px;
+                }
+                
+                .game-info {
+                    margin-bottom: 10px;
+                }
+                
+                .mode-selector {
+                    margin-bottom: 8px;
+                }
+                
+                .letter-cell {
+                    width: 40px;
+                    height: 40px;
+                    font-size: 1.2em;
+                }
+                
+                .game-board {
+                    gap: 2px;
+                    margin-bottom: 10px;
+                }
+                
+                .word-row {
+                    gap: 2px;
+                }
+                
+                .keyboard {
+                    padding: 10px;
+                    margin: 2px 0 0 0;
+                }
+                
+                .key {
+                    min-width: 22px;
+                    width: 22px;
+                    height: 28px;
+                    font-size: 6px;
+                    padding: 2px 3px;
+                }
+                
+                .key.special {
+                    min-width: 26px;
+                    width: 26px;
+                    font-size: 5px;
+                }
+            }
             
             /* Мобильные стили для модального окна */
             .modal-content {
-                margin: 10% auto;
-                width: 95%;
+                margin: 15% auto;
+                width: 90%;
                 max-width: none;
+                max-height: 75vh;
             }
             
             .modal-header {
-                padding: 15px 20px;
+                padding: 12px 15px;
             }
             
             .modal-header h2 {
-                font-size: 1.3em;
+                font-size: 1.2em;
             }
             
             .modal-body {
-                padding: 20px;
+                padding: 15px;
             }
             
             .setting-item {
-                padding: 12px;
-                margin-bottom: 15px;
+                padding: 10px;
+                margin-bottom: 12px;
             }
             
             .modal-footer {
-                padding: 15px 20px;
+                padding: 12px 15px;
             }
             
             /* Мобильные стили для заголовка */
