@@ -37,7 +37,8 @@ public class WordleController {
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         if (gameState == null) {
-            gameState = wordleService.createNewGame();
+            // По умолчанию создаем игру в режиме "Слово дня"
+            gameState = wordleService.createGame(GameMode.DAILY);
             session.setAttribute("gameState", gameState);
         }
         
@@ -127,7 +128,7 @@ public class WordleController {
     @PostMapping("/new-game")
     public String newGame(HttpSession session) {
         GameState currentGame = (GameState) session.getAttribute("gameState");
-        GameMode currentMode = (currentGame != null) ? currentGame.getGameMode() : GameMode.GUESS;
+        GameMode currentMode = (currentGame != null) ? currentGame.getGameMode() : GameMode.DAILY;
         GameState newGame = wordleService.createGame(currentMode);
         session.setAttribute("gameState", newGame);
         return "redirect:/";

@@ -1033,11 +1033,11 @@
         <!-- Переключатель режимов -->
         <div class="mode-selector">
             <div class="mode-toggle">
-                <input type="radio" id="mode-guess" name="gameMode" value="guess" th:checked="${gameState.gameMode == T(org.example.wordle.model.GameMode).GUESS}">
-                <label for="mode-guess">Угадывать</label>
-                
                 <input type="radio" id="mode-daily" name="gameMode" value="daily" th:checked="${gameState.gameMode == T(org.example.wordle.model.GameMode).DAILY}">
                 <label for="mode-daily">Слово дня</label>
+                
+                <input type="radio" id="mode-guess" name="gameMode" value="guess" th:checked="${gameState.gameMode == T(org.example.wordle.model.GameMode).GUESS}">
+                <label for="mode-guess">Угадывать</label>
             </div>
         </div>
         
