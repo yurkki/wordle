@@ -44,6 +44,7 @@ public class WordleController {
         
         model.addAttribute("gameState", gameState);
         model.addAttribute("todayDate", dailyWordService.getTodayDateString());
+        model.addAttribute("playerId", gameState.getPlayerId());
         return "index";
     }
     
@@ -223,6 +224,35 @@ public class WordleController {
         } catch (Exception e) {
             System.err.println("Error getting recent stats: " + e.getMessage());
             return ResponseEntity.status(500).build();
+        }
+    }
+    
+    /**
+     * Получает позицию игрока в рейтинге дня
+     */
+    @GetMapping("/api/stats/player-rank")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPlayerRank(@RequestParam String playerId) {
+        try {
+            DailyStats stats = wordleService.getDailyStatsWithPlayerResult(playerId);
+            Map<String, Object> response = new HashMap<>();
+            
+            if (stats.getPlayerResult() != null && stats.getPlayerResult().isSuccess()) {
+                response.put("success", true);
+                response.put("rank", stats.getPlayerResult().getRank());
+                response.put("attempts", stats.getPlayerResult().getAttempts());
+            } else {
+                response.put("success", false);
+                response.put("message", "Игрок не угадал слово или не играл сегодня");
+            }
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error getting player rank: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Ошибка получения рейтинга");
+            return ResponseEntity.status(500).body(errorResponse);
         }
     }
 }

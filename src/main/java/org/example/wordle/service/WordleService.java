@@ -34,7 +34,9 @@ public class WordleService {
      */
     public GameState createNewGame() {
         String targetWord = wordsRepository.getRandomFiveLetterWord();
-        return new GameState(targetWord, GameMode.GUESS);
+        GameState gameState = new GameState(targetWord, GameMode.GUESS);
+        gameState.setPlayerId(generatePlayerId());
+        return gameState;
     }
 
     /**
@@ -42,7 +44,9 @@ public class WordleService {
      */
     public GameState createDailyGame() {
         String targetWord = dailyWordService.getTodayWord();
-        return new GameState(targetWord, GameMode.DAILY);
+        GameState gameState = new GameState(targetWord, GameMode.DAILY);
+        gameState.setPlayerId(generatePlayerId());
+        return gameState;
     }
 
     /**
@@ -198,7 +202,7 @@ public class WordleService {
         }
         
         int attempts = success ? gameState.getGuesses().size() : 0;
-        String playerId = generatePlayerId(); // Простая генерация ID игрока
+        String playerId = gameState.getPlayerId();
         
         statsService.recordGameStats(
             LocalDate.now(),

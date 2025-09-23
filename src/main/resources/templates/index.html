@@ -231,6 +231,18 @@
             font-weight: 600;
         }
 
+        .rank-info {
+            background: #fff3cd;
+            padding: 12px 20px;
+            border-radius: 10px;
+            margin: 15px 0;
+            font-size: 1.2em;
+            text-align: center;
+            color: #856404;
+            border: 2px solid #ffeaa7;
+            font-weight: 600;
+        }
+
         .status.won {
             color: #4CAF50;
         }
@@ -1019,6 +1031,9 @@
 </head>
 <body>
     <div class="container">
+        <!-- Скрытое поле с playerId -->
+        <input type="hidden" id="playerId" th:value="${playerId}">
+        
         <!-- Заголовок с кнопками -->
         <div class="header-container">
             <button id="statsBtn" onclick="openStats()" title="Статистика дня" class="settings-btn stats-btn">
@@ -1345,12 +1360,9 @@
                     });
                 }
 
-                // Кнопка "Начать заново" в модальном окне
+                // Кнопка в модальном окне (будет обновлена динамически)
                 if (newGameBtn) {
-                    newGameBtn.addEventListener('click', () => {
-                        this.closeModal();
-                        this.startNewGame();
-                    });
+                    // Обработчик будет установлен в updateModalButton
                 }
             }
 
@@ -1721,7 +1733,7 @@
                 });
             }
 
-            showGameResultModal(isWin, attempts, targetWord) {
+            async showGameResultModal(isWin, attempts, targetWord) {
                 const modal = document.getElementById('gameResultModal');
                 const content = document.getElementById('gameResultContent');
                 
@@ -1733,11 +1745,35 @@
                 const gameTime = this.getGameTime();
                 const timeText = this.formatTime(gameTime);
                 
+                // Проверяем текущий режим игры
+                const currentMode = document.querySelector('input[name="gameMode"]:checked');
+                const isDailyMode = currentMode && currentMode.value === 'daily';
+                
+                let rankInfo = '';
+                if (isWin && isDailyMode) {
+                    // Получаем позицию в рейтинге для режима дня
+                    try {
+                        const playerId = this.getPlayerId();
+                        if (playerId) {
+                            const rankResponse = await fetch(`/api/stats/player-rank?playerId=${encodeURIComponent(playerId)}`);
+                            if (rankResponse.ok) {
+                                const rankData = await rankResponse.json();
+                                if (rankData.success) {
+                                    rankInfo = `<p class="rank-info">🏆 Ваша позиция в рейтинге: <strong>${rankData.rank}</strong></p>`;
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error fetching player rank:', error);
+                    }
+                }
+                
                 if (isWin) {
                     content.innerHTML = `
                         <h2 class="success-message">🎉 Поздравляем!</h2>
                         <p>Вы угадали слово за <strong>${attempts}</strong> попыт${attempts === 1 ? 'ку' : attempts < 5 ? 'ки' : 'ок'}!</p>
                         <p class="time-info">⏱️ Вам понадобилось: <strong>${timeText}</strong></p>
+                        ${rankInfo}
                     `;
                 } else {
                     content.innerHTML = `
@@ -1748,12 +1784,38 @@
                     `;
                 }
                 
+                // Обновляем кнопку в зависимости от режима
+                this.updateModalButton(isDailyMode);
+                
                 modal.style.display = 'flex';
             }
 
             closeModal() {
                 const modal = document.getElementById('gameResultModal');
                 modal.style.display = 'none';
+            }
+
+            getPlayerId() {
+                // Получаем playerId из скрытого поля
+                const playerIdElement = document.getElementById('playerId');
+                return playerIdElement ? playerIdElement.value : null;
+            }
+
+            updateModalButton(isDailyMode) {
+                const newGameBtn = document.getElementById('newGameBtn');
+                if (isDailyMode) {
+                    newGameBtn.textContent = 'ПЕРЕЙТИ В РЕЖИМ УГАДЫВАТЬ';
+                    newGameBtn.onclick = () => this.switchToGuessMode();
+                } else {
+                    newGameBtn.textContent = 'Начать заново';
+                    newGameBtn.onclick = () => this.startNewGame();
+                }
+            }
+
+            switchToGuessMode() {
+                this.closeModal();
+                // Переключаемся на режим "Угадывать"
+                this.switchMode('guess');
             }
 
             startNewGame() {

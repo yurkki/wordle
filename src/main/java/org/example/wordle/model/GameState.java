@@ -13,6 +13,7 @@ public class GameState {
     private List<WordGuess> guesses;
     private GameStatus status;
     private GameMode gameMode;
+    private String playerId;
     
     public GameState() {
         this.guesses = new ArrayList<>();
