@@ -14,9 +14,11 @@ import java.util.Random;
 public class DailyWordService {
 
     private final WordsRepository wordsRepository;
+    private final DictionaryApiService dictionaryApiService;
 
-    public DailyWordService(WordsRepository wordsRepository) {
+    public DailyWordService(WordsRepository wordsRepository, DictionaryApiService dictionaryApiService) {
         this.wordsRepository = wordsRepository;
+        this.dictionaryApiService = dictionaryApiService;
     }
     
     /**
@@ -24,7 +26,7 @@ public class DailyWordService {
      * 
      * Алгоритм использует детерминированный seed на основе даты для обеспечения
      * стабильности в течение дня, но добавляет рандомность для более равномерного
-     * распределения слов по датам.
+     * распределения слов по датам. Включает валидацию через Яндекс API.
      */
     public String getWordForDate(LocalDate date) {
         // Получаем уже отфильтрованные 5-буквенные слова
@@ -47,14 +49,44 @@ public class DailyWordService {
         // Создаем Random с детерминированным seed
         Random random = new Random(seed);
         
+        // Ищем валидное слово с проверкой через Яндекс API
+        return findValidWordWithApiCheck(fiveLetterWords, random, date);
+    }
+    
+    /**
+     * Ищет валидное слово с проверкой через Яндекс API
+     * Если API недоступен или слово не проходит валидацию, выбирает другое слово
+     */
+    private String findValidWordWithApiCheck(List<String> words, Random random, LocalDate date) {
+        int maxAttempts = Math.min(50, words.size()); // Ограничиваем количество попыток
+        int baseIndex = 0;
+        
         // Добавляем дополнительную рандомность - делаем несколько случайных выборов
         // и берем последний для более равномерного распределения
-        int wordIndex = 0;
         for (int i = 0; i < 3; i++) {
-            wordIndex = random.nextInt(fiveLetterWords.size());
+            baseIndex = random.nextInt(words.size());
         }
         
-        return fiveLetterWords.get(wordIndex);
+        // Пробуем найти валидное слово, начиная с базового индекса
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            int wordIndex = (baseIndex + attempt) % words.size();
+            String candidateWord = words.get(wordIndex);
+            
+            System.out.println("Проверяем слово дня для " + date + ": " + candidateWord + " (попытка " + (attempt + 1) + ")");
+            
+            // Проверяем слово через Яндекс API
+            if (dictionaryApiService.isWordValid(candidateWord)) {
+                System.out.println("Слово дня выбрано: " + candidateWord + " (валидация через Яндекс API пройдена)");
+                return candidateWord;
+            } else {
+                System.out.println("Слово " + candidateWord + " не прошло валидацию через Яндекс API, пробуем следующее");
+            }
+        }
+        
+        // Если не удалось найти валидное слово через API, возвращаем базовое слово
+        String fallbackWord = words.get(baseIndex);
+        System.out.println("Не удалось найти валидное слово через API, используем fallback: " + fallbackWord);
+        return fallbackWord;
     }
     
     /**

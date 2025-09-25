@@ -34,8 +34,8 @@ public class DictionaryApiTest {
     @Test
     public void testWordleServiceWithApi() {
         WordsRepository wordsRepository = new WordsRepository();
-        DailyWordService dailyWordService = new DailyWordService(wordsRepository);
         DictionaryApiService apiService = new DictionaryApiService();
+        DailyWordService dailyWordService = new DailyWordService(wordsRepository, apiService);
         StatsService statsService = new StatsService();
         WordleService wordleService = new WordleService(wordsRepository, dailyWordService, apiService, statsService);
         
