@@ -20,10 +20,16 @@ public class StatsService {
     // Ключ: дата игры, Значение: список статистики игроков
     private final Map<LocalDate, List<GameStats>> dailyStats = new ConcurrentHashMap<>();
     
+    // Кэш для отслеживания, была ли уже выполнена очистка за текущий день
+    private LocalDate lastCleanupDate = null;
+    
     /**
      * Записывает статистику завершенной игры
      */
     public void recordGameStats(LocalDate gameDate, int attempts, String playerId, String targetWord, int gameTimeSeconds) {
+        // Проверяем, нужно ли обнулить статистику при смене дня
+        ensureCurrentDayStats(gameDate);
+        
         GameStats stats = new GameStats(
             gameDate, 
             attempts, 
@@ -35,13 +41,17 @@ public class StatsService {
         
         dailyStats.computeIfAbsent(gameDate, k -> new ArrayList<>()).add(stats);
         
-        System.out.println("Recorded game stats: " + stats);
+        System.out.println("📊 Записана статистика игры: " + stats);
+        System.out.println("📈 Общая статистика за " + gameDate + ": " + dailyStats.get(gameDate).size() + " игроков");
     }
     
     /**
      * Получает статистику дня
      */
     public DailyStats getDailyStats(LocalDate date) {
+        // Проверяем, нужно ли обнулить статистику при смене дня
+        ensureCurrentDayStats(date);
+        
         List<GameStats> dayStats = dailyStats.getOrDefault(date, new ArrayList<>());
         
         if (dayStats.isEmpty()) {
@@ -150,5 +160,68 @@ public class StatsService {
     public void cleanupOldStats(int keepDays) {
         LocalDate cutoffDate = LocalDate.now().minusDays(keepDays);
         dailyStats.entrySet().removeIf(entry -> entry.getKey().isBefore(cutoffDate));
+    }
+    
+    /**
+     * Проверяет и обеспечивает корректную статистику для текущего дня
+     * Автоматически обнуляет статистику при смене дня
+     * Использует кэширование для оптимизации производительности
+     */
+    private void ensureCurrentDayStats(LocalDate currentDate) {
+        LocalDate today = LocalDate.now();
+        
+        // Если запрашивается статистика не за сегодня, ничего не делаем
+        if (!currentDate.equals(today)) {
+            return;
+        }
+        
+        // Проверяем кэш - если очистка уже была выполнена сегодня, пропускаем
+        if (lastCleanupDate != null && lastCleanupDate.equals(today)) {
+            return; // Очистка уже была выполнена сегодня
+        }
+        
+        // Проверяем, есть ли статистика за предыдущие дни
+        boolean hasOldStats = dailyStats.keySet().stream()
+            .anyMatch(date -> date.isBefore(today));
+        
+        if (hasOldStats) {
+            System.out.println("🔄 Обнаружена статистика за предыдущие дни, очищаем старые данные...");
+            
+            // Очищаем статистику за предыдущие дни, оставляя только сегодняшнюю
+            dailyStats.entrySet().removeIf(entry -> entry.getKey().isBefore(today));
+            
+            System.out.println("✅ Статистика обнулена для нового дня: " + today);
+            System.out.println("📊 Текущая статистика за " + today + ": " + 
+                dailyStats.getOrDefault(today, new ArrayList<>()).size() + " игроков");
+        }
+        
+        // Обновляем кэш - отмечаем, что очистка была выполнена сегодня
+        lastCleanupDate = today;
+    }
+    
+    /**
+     * Принудительно обнуляет статистику для указанной даты
+     */
+    public void resetStatsForDate(LocalDate date) {
+        dailyStats.remove(date);
+        System.out.println("🗑️ Статистика обнулена для даты: " + date);
+    }
+    
+    /**
+     * Получает информацию о текущем состоянии статистики
+     */
+    public String getStatsInfo() {
+        StringBuilder info = new StringBuilder();
+        info.append("📊 Информация о статистике:\n");
+        
+        if (dailyStats.isEmpty()) {
+            info.append("   Статистика пуста\n");
+        } else {
+            dailyStats.forEach((date, stats) -> {
+                info.append("   ").append(date).append(": ").append(stats.size()).append(" игроков\n");
+            });
+        }
+        
+        return info.toString();
     }
 }

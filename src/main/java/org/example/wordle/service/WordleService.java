@@ -245,6 +245,13 @@ public class WordleService {
     }
     
     /**
+     * Получает информацию о состоянии статистики
+     */
+    public String getStatsInfo() {
+        return statsService.getStatsInfo();
+    }
+    
+    /**
      * Получает валидное случайное слово с проверкой через Яндекс API
      * Если слово не проходит валидацию, выбирает следующее
      */

@@ -262,4 +262,24 @@ public class WordleController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
+    
+    /**
+     * Получает информацию о состоянии статистики
+     */
+    @GetMapping("/api/stats/info")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getStatsInfo() {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("info", wordleService.getStatsInfo());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error getting stats info: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Ошибка получения информации о статистике");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
 }

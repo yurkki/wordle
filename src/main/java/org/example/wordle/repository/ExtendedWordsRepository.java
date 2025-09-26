@@ -21,7 +21,7 @@ public class ExtendedWordsRepository {
 
     public ExtendedWordsRepository() {
         this.extendedWords = Arrays.asList(
-                "ЕПАРХ", "ШАЛОМ", "СУФЛЕ"
+                "ЕПАРХ", "ШАЛОМ", "СУФЛЕ", "ТУНЕЦ"
         );
 
         // Создаем Set для быстрой проверки валидности слов (нормализованные)
