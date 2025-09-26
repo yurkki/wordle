@@ -31,9 +31,10 @@ public class WordleService {
 
     /**
      * Создает новую игру со случайным словом в режиме угадывания
+     * Слово проверяется через Яндекс API для валидности
      */
     public GameState createNewGame() {
-        String targetWord = wordsRepository.getRandomFiveLetterWord();
+        String targetWord = getValidRandomWord();
         GameState gameState = new GameState(targetWord, GameMode.GUESS);
         gameState.setPlayerId(generatePlayerId());
         return gameState;
@@ -241,5 +242,35 @@ public class WordleService {
      */
     public List<DailyStats> getRecentStats(int days) {
         return statsService.getRecentStats(days);
+    }
+    
+    /**
+     * Получает валидное случайное слово с проверкой через Яндекс API
+     * Если слово не проходит валидацию, выбирает следующее
+     */
+    private String getValidRandomWord() {
+        List<String> fiveLetterWords = wordsRepository.getFiveLetterWords();
+        int maxAttempts = Math.min(50, fiveLetterWords.size()); // Ограничиваем количество попыток
+        
+        System.out.println("Поиск валидного слова для режима УГАДЫВАТЬ...");
+        
+        for (int attempt = 0; attempt < maxAttempts; attempt++) {
+            String candidateWord = wordsRepository.getRandomFiveLetterWord();
+            
+            System.out.println("Проверяем слово для угадывания: " + candidateWord + " (попытка " + (attempt + 1) + ")");
+            
+            // Проверяем слово через Яндекс API
+            if (dictionaryApiService.isWordValid(candidateWord)) {
+                System.out.println("Слово для угадывания выбрано: " + candidateWord + " (валидация через Яндекс API пройдена)");
+                return candidateWord;
+            } else {
+                System.out.println("Слово " + candidateWord + " не прошло валидацию через Яндекс API, пробуем следующее");
+            }
+        }
+        
+        // Если не удалось найти валидное слово через API, возвращаем случайное слово
+        String fallbackWord = wordsRepository.getRandomFiveLetterWord();
+        System.out.println("Не удалось найти валидное слово через API, используем fallback: " + fallbackWord);
+        return fallbackWord;
     }
 }
