@@ -62,7 +62,12 @@ public class DictionaryApiService {
         // ВТОРОЙ ЭТАП: Если нет ключа API, используем fallback на локальный словарь
         if (yandexApiKey == null || yandexApiKey.isEmpty()) {
             System.out.println("API key not set, using fallback validation for word: " + word);
-            return checkWordInLocalDictionary(word);
+            boolean isValid = checkWordInLocalDictionary(word);
+            if (!isValid) {
+                // Логируем случай, когда слово не найдено в расширенном словаре и API не настроен
+                System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В РАСШИРЕННОМ СЛОВАРЕ И API НЕ НАСТРОЕН: " + word + " (пользователь пытался ввести неизвестное слово)");
+            }
+            return isValid;
         }
 
         // ТРЕТИЙ ЭТАП: Пробуем API с таймаутом
@@ -77,10 +82,20 @@ public class DictionaryApiService {
 
             // Ждем результат с таймаутом
             Boolean result = apiResult.get(timeoutMs, TimeUnit.MILLISECONDS);
-            return result != null && result;
+            
+            if (result != null && result) {
+                System.out.println("Слово найдено в Яндекс словаре: " + word);
+                return true;
+            } else {
+                // Логируем случай, когда слово не найдено в Яндекс словаре
+                System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В ЯНДЕКС СЛОВАРЕ: " + word + " (пользователь пытался ввести неизвестное слово)");
+                return false;
+            }
 
         } catch (Exception e) {
             System.out.println("Яндекс API недоступен: " + e.getMessage());
+            // Логируем случай, когда API недоступен, но слово не найдено в расширенном словаре
+            System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В РАСШИРЕННОМ СЛОВАРЕ И API НЕДОСТУПЕН: " + word + " (пользователь пытался ввести неизвестное слово)");
             return false;
         }
     }
@@ -113,7 +128,15 @@ public class DictionaryApiService {
 
             @SuppressWarnings("unchecked")
             List<Object> definitions = (List<Object>) response.get("def");
-            return definitions != null && !definitions.isEmpty();
+            boolean found = definitions != null && !definitions.isEmpty();
+            
+            if (found) {
+                System.out.println("✅ Яндекс API: слово '" + word + "' найдено в словаре");
+            } else {
+                System.out.println("❌ Яндекс API: слово '" + word + "' НЕ найдено в словаре");
+            }
+            
+            return found;
 
         } catch (HttpClientErrorException e) {
             System.out.println("Яндекс API ошибка: " + e.getStatusCode());

@@ -75,9 +75,13 @@ public class WordleController {
                 response.put("success", false);
                 response.put("error", "Слово должно содержать ровно 5 букв");
             } else if (!wordleService.isValidWord(word)) {
+                // Логируем попытку пользователя ввести невалидное слово
+                System.out.println("🚫 ПОЛЬЗОВАТЕЛЬ ВВЕЛ НЕВАЛИДНОЕ СЛОВО: '" + word + "' (не найдено в словарях)");
                 response.put("success", false);
                 response.put("error", "Введено неизвестное слово");
             } else {
+                // Логируем успешную попытку пользователя
+                System.out.println("✅ ПОЛЬЗОВАТЕЛЬ ВВЕЛ ВАЛИДНОЕ СЛОВО: '" + word + "' (найдено в словарях)");
                 WordGuess guess = wordleService.processGuess(word, gameState);
                 response.put("success", true);
                 response.put("gameState", gameState);
