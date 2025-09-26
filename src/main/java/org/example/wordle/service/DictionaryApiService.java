@@ -1,5 +1,6 @@
 package org.example.wordle.service;
 
+import org.example.wordle.repository.ExtendedWordsRepository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
@@ -19,6 +20,7 @@ import java.util.concurrent.TimeUnit;
 public class DictionaryApiService {
 
     private final RestTemplate restTemplate;
+    private final ExtendedWordsRepository extendedWordsRepository;
     
     @Value("${dictionary.api.yandex.key:}")
     private String yandexApiKey;
@@ -26,8 +28,9 @@ public class DictionaryApiService {
     @Value("${dictionary.api.timeout:5000}")
     private int timeoutMs;
 
-    public DictionaryApiService() {
+    public DictionaryApiService(ExtendedWordsRepository extendedWordsRepository) {
         this.restTemplate = new RestTemplate();
+        this.extendedWordsRepository = extendedWordsRepository;
     }
     
     @PostConstruct
@@ -37,7 +40,8 @@ public class DictionaryApiService {
     }
 
     /**
-     * Проверяет слово через Яндекс.Словарь API
+     * Проверяет слово через расширенный словарь и Яндекс.Словарь API
+     * Сначала проверяет в расширенном словаре, затем через Яндекс API
      */
     public boolean isWordValid(String word) {
         if (word == null || word.length() != 5) {
@@ -49,13 +53,19 @@ public class DictionaryApiService {
             return false;
         }
 
-        // Если нет ключа API, используем fallback на локальный словарь
+        // ПЕРВЫЙ ЭТАП: Проверяем в расширенном словаре
+        if (extendedWordsRepository.containsWord(word)) {
+            System.out.println("Слово найдено в расширенном словаре: " + word);
+            return true;
+        }
+
+        // ВТОРОЙ ЭТАП: Если нет ключа API, используем fallback на локальный словарь
         if (yandexApiKey == null || yandexApiKey.isEmpty()) {
             System.out.println("API key not set, using fallback validation for word: " + word);
             return checkWordInLocalDictionary(word);
         }
 
-        // Пробуем API с таймаутом
+        // ТРЕТИЙ ЭТАП: Пробуем API с таймаутом
         try {
             CompletableFuture<Boolean> apiResult = CompletableFuture.supplyAsync(() -> {
                 try {
@@ -118,13 +128,18 @@ public class DictionaryApiService {
 
 
     /**
-     * Получает статус Яндекс API
+     * Получает статус API и расширенного словаря
      */
     public String getApiStatus() {
+        StringBuilder status = new StringBuilder();
+        status.append("Расширенный словарь: ").append(extendedWordsRepository.getWordCount()).append(" слов");
+        
         if (yandexApiKey != null && !yandexApiKey.isEmpty()) {
-            return "Яндекс.Словарь API: настроен";
+            status.append(", Яндекс.Словарь API: настроен");
         } else {
-            return "Яндекс.Словарь API: не настроен (только проверка формата)";
+            status.append(", Яндекс.Словарь API: не настроен");
         }
+        
+        return status.toString();
     }
 }
