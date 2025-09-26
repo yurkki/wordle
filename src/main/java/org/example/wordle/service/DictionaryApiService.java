@@ -8,6 +8,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.ResourceAccessException;
 
 import jakarta.annotation.PostConstruct;
+
 import java.util.Map;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -21,10 +22,10 @@ public class DictionaryApiService {
 
     private final RestTemplate restTemplate;
     private final ExtendedWordsRepository extendedWordsRepository;
-    
+
     @Value("${dictionary.api.yandex.key:}")
     private String yandexApiKey;
-    
+
     @Value("${dictionary.api.timeout:5000}")
     private int timeoutMs;
 
@@ -32,11 +33,11 @@ public class DictionaryApiService {
         this.restTemplate = new RestTemplate();
         this.extendedWordsRepository = extendedWordsRepository;
     }
-    
+
     @PostConstruct
     public void init() {
-        System.out.println("DictionaryApiService initialized with API key: " + 
-            (yandexApiKey != null && !yandexApiKey.isEmpty() ? "SET" : "NOT SET"));
+        System.out.println("DictionaryApiService initialized with API key: " +
+                           (yandexApiKey != null && !yandexApiKey.isEmpty() ? "SET" : "NOT SET"));
     }
 
     /**
@@ -82,15 +83,8 @@ public class DictionaryApiService {
 
             // Ждем результат с таймаутом
             Boolean result = apiResult.get(timeoutMs, TimeUnit.MILLISECONDS);
-            
-            if (result != null && result) {
-                System.out.println("Слово найдено в Яндекс словаре: " + word);
-                return true;
-            } else {
-                // Логируем случай, когда слово не найдено в Яндекс словаре
-                System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В ЯНДЕКС СЛОВАРЕ: " + word + " (пользователь пытался ввести неизвестное слово)");
-                return false;
-            }
+
+            return result != null && result;
 
         } catch (Exception e) {
             System.out.println("Яндекс API недоступен: " + e.getMessage());
@@ -119,8 +113,8 @@ public class DictionaryApiService {
 
         try {
             String url = String.format(
-                "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=%s&lang=ru-ru&text=%s",
-                yandexApiKey, word
+                    "https://dictionary.yandex.net/api/v1/dicservice.json/lookup?key=%s&lang=ru-ru&text=%s",
+                    yandexApiKey, word
             );
 
             @SuppressWarnings("unchecked")
@@ -129,13 +123,13 @@ public class DictionaryApiService {
             @SuppressWarnings("unchecked")
             List<Object> definitions = (List<Object>) response.get("def");
             boolean found = definitions != null && !definitions.isEmpty();
-            
+
             if (found) {
                 System.out.println("✅ Яндекс API: слово '" + word + "' найдено в словаре");
             } else {
                 System.out.println("❌ Яндекс API: слово '" + word + "' НЕ найдено в словаре");
             }
-            
+
             return found;
 
         } catch (HttpClientErrorException e) {
@@ -156,13 +150,13 @@ public class DictionaryApiService {
     public String getApiStatus() {
         StringBuilder status = new StringBuilder();
         status.append("Расширенный словарь: ").append(extendedWordsRepository.getWordCount()).append(" слов");
-        
+
         if (yandexApiKey != null && !yandexApiKey.isEmpty()) {
             status.append(", Яндекс.Словарь API: настроен");
         } else {
             status.append(", Яндекс.Словарь API: не настроен");
         }
-        
+
         return status.toString();
     }
 }
