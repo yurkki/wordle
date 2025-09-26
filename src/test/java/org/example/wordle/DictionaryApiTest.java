@@ -3,6 +3,7 @@ package org.example.wordle;
 import org.example.wordle.service.DictionaryApiService;
 import org.example.wordle.service.WordleService;
 import org.example.wordle.repository.WordsRepository;
+import org.example.wordle.repository.ExtendedWordsRepository;
 import org.example.wordle.service.DailyWordService;
 import org.example.wordle.service.StatsService;
 import org.junit.jupiter.api.Test;
@@ -15,7 +16,8 @@ public class DictionaryApiTest {
 
     @Test
     public void testDictionaryApiService() {
-        DictionaryApiService apiService = new DictionaryApiService();
+        ExtendedWordsRepository extendedRepo = new ExtendedWordsRepository();
+        DictionaryApiService apiService = new DictionaryApiService(extendedRepo);
         
         // Тестируем формат слов
         assertFalse(apiService.isWordValid("12345"), "12345 не должно быть валидным");
@@ -23,10 +25,16 @@ public class DictionaryApiTest {
         assertFalse(apiService.isWordValid("ПОКЕ"), "ПОКЕ не должно быть валидным");
         assertFalse(apiService.isWordValid(null), "null не должно быть валидным");
         
+        // Тестируем слова из расширенного словаря
+        assertTrue(apiService.isWordValid("ЕПАРХ"), "ЕПАРХ должно быть валидным из расширенного словаря");
+        assertTrue(apiService.isWordValid("ШАЛОМ"), "ШАЛОМ должно быть валидным из расширенного словаря");
+        assertTrue(apiService.isWordValid("СУФЛЕ"), "СУФЛЕ должно быть валидным из расширенного словаря");
+        
         // Проверяем статус API
         String status = apiService.getApiStatus();
         assertNotNull(status, "Статус API не должен быть null");
-        assertTrue(status.contains("Яндекс"), "Статус должен содержать информацию о Яндекс API");
+        assertTrue(status.contains("Расширенный словарь"), "Статус должен содержать информацию о расширенном словаре");
+        assertTrue(status.contains("слов"), "Статус должен содержать количество слов");
         
         System.out.println("API Статус: " + status);
     }
@@ -34,7 +42,8 @@ public class DictionaryApiTest {
     @Test
     public void testWordleServiceWithApi() {
         WordsRepository wordsRepository = new WordsRepository();
-        DictionaryApiService apiService = new DictionaryApiService();
+        ExtendedWordsRepository extendedRepo = new ExtendedWordsRepository();
+        DictionaryApiService apiService = new DictionaryApiService(extendedRepo);
         DailyWordService dailyWordService = new DailyWordService(wordsRepository, apiService);
         StatsService statsService = new StatsService();
         WordleService wordleService = new WordleService(wordsRepository, dailyWordService, apiService, statsService);
