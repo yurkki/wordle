@@ -15,6 +15,10 @@ public class DailyWordService {
 
     private final WordsRepository wordsRepository;
     private final DictionaryApiService dictionaryApiService;
+    
+    // Кэш для слова дня - избегаем повторного выбора в течение дня
+    private String cachedTodayWord = null;
+    private LocalDate cachedDate = null;
 
     public DailyWordService(WordsRepository wordsRepository, DictionaryApiService dictionaryApiService) {
         this.wordsRepository = wordsRepository;
@@ -91,9 +95,27 @@ public class DailyWordService {
     
     /**
      * Получить слово дня для сегодняшней даты
+     * Использует кэширование для избежания повторного выбора в течение дня
      */
     public String getTodayWord() {
-        return getWordForDate(LocalDate.now());
+        LocalDate today = LocalDate.now();
+        
+        // Проверяем кэш - если слово уже выбрано сегодня, возвращаем его
+        if (cachedTodayWord != null && cachedDate != null && cachedDate.equals(today)) {
+            System.out.println("📝 Используем кэшированное слово дня: " + cachedTodayWord);
+            return cachedTodayWord;
+        }
+        
+        // Выбираем новое слово дня
+        System.out.println("🎯 Выбираем новое слово дня для " + today);
+        String todayWord = getWordForDate(today);
+        
+        // Сохраняем в кэш
+        cachedTodayWord = todayWord;
+        cachedDate = today;
+        
+        System.out.println("✅ Слово дня выбрано и закэшировано: " + todayWord);
+        return todayWord;
     }
     
     /**
@@ -108,5 +130,26 @@ public class DailyWordService {
      */
     public String getTodayDateString() {
         return LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"));
+    }
+    
+    /**
+     * Принудительно обновить кэш слова дня
+     * Полезно для тестирования или принудительного обновления
+     */
+    public void clearCache() {
+        cachedTodayWord = null;
+        cachedDate = null;
+        System.out.println("🗑️ Кэш слова дня очищен");
+    }
+    
+    /**
+     * Получить информацию о текущем кэше
+     */
+    public String getCacheInfo() {
+        if (cachedTodayWord != null && cachedDate != null) {
+            return "Кэш: " + cachedTodayWord + " (дата: " + cachedDate + ")";
+        } else {
+            return "Кэш пуст";
+        }
     }
 }
