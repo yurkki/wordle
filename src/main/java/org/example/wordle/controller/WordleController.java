@@ -51,6 +51,7 @@ public class WordleController {
                 // Создаем игру в режиме GUESS с загаданным словом
                 gameState = new GameState(friendWord, GameMode.GUESS);
                 gameState.setPlayerId(generatePlayerId());
+                gameState.setFriendGame(true); // Устанавливаем флаг игры с другом
                 session.setAttribute("gameState", gameState);
                 
                 System.out.println("🎯 Создана игра с другом по слову: " + friendWord + " (ID: " + word_id + ")");
@@ -60,6 +61,7 @@ public class WordleController {
                 model.addAttribute("playerId", gameState.getPlayerId());
                 model.addAttribute("friendGame", true);
                 model.addAttribute("friendWordId", word_id);
+                model.addAttribute("appDomain", appDomain);
                 
                 // Игра с другом создана
                 
@@ -79,6 +81,7 @@ public class WordleController {
         model.addAttribute("gameState", gameState);
         model.addAttribute("todayDate", dailyWordService.getTodayDateString());
         model.addAttribute("playerId", gameState.getPlayerId());
+        model.addAttribute("appDomain", appDomain);
         return "index";
     }
     
@@ -108,7 +111,7 @@ public class WordleController {
             if (word.length() != 5) {
                 response.put("success", false);
                 response.put("error", "Слово должно содержать ровно 5 букв");
-            } else if (!wordleService.isValidWord(word)) {
+            } else if (!wordleService.isValidWord(word, gameState)) {
                 // Логируем попытку пользователя ввести невалидное слово
                 response.put("success", false);
                 response.put("error", "Введено неизвестное слово");
@@ -150,7 +153,7 @@ public class WordleController {
         try {
             if (word.length() != 5) {
                 model.addAttribute("error", "Слово должно содержать ровно 5 букв");
-            } else if (!wordleService.isValidWord(word)) {
+            } else if (!wordleService.isValidWord(word, gameState)) {
                 model.addAttribute("error", "Слово должно содержать только русские буквы");
             } else {
                 WordGuess guess = wordleService.processGuess(word, gameState);
@@ -359,8 +362,6 @@ public class WordleController {
             response.put("success", true);
             response.put("domain", appDomain);
             
-            System.out.println("📋 Конфигурация приложения: домен = " + appDomain);
-            
             return ResponseEntity.ok(response);
         } catch (Exception e) {
             System.err.println("Error getting app config: " + e.getMessage());
@@ -369,6 +370,119 @@ public class WordleController {
             errorResponse.put("error", "Ошибка получения конфигурации");
             return ResponseEntity.status(500).body(errorResponse);
         }
+    }
+
+    /**
+     * Генерировать превью изображение с динамическим доменом
+     */
+    @GetMapping("/images/wordle-preview.svg")
+    @ResponseBody
+    public ResponseEntity<String> getWordlePreview() {
+        try {
+            String domain = appDomain.replace("https://", "").replace("http://", "");
+            String svg = generateWordlePreviewSvg(domain);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/svg+xml")
+                    .body(svg);
+        } catch (Exception e) {
+            System.err.println("Error generating preview: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error generating preview");
+        }
+    }
+
+    /**
+     * Генерировать превью изображение для игры с друзьями
+     */
+    @GetMapping("/images/wordle-friend-game.svg")
+    @ResponseBody
+    public ResponseEntity<String> getFriendGamePreview() {
+        try {
+            String domain = appDomain.replace("https://", "").replace("http://", "");
+            String svg = generateFriendGamePreviewSvg(domain);
+            
+            return ResponseEntity.ok()
+                    .header("Content-Type", "image/svg+xml")
+                    .body(svg);
+        } catch (Exception e) {
+            System.err.println("Error generating friend game preview: " + e.getMessage());
+            return ResponseEntity.status(500).body("Error generating preview");
+        }
+    }
+
+    /**
+     * Генерирует SVG для превью Wordle
+     */
+    private String generateWordlePreviewSvg(String domain) {
+        return String.format("""
+            <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="bg" x1="0%%" y1="0%%" x2="100%%" y2="100%%">
+                  <stop offset="0%%" style="stop-color:#667eea;stop-opacity:1" />
+                  <stop offset="100%%" style="stop-color:#764ba2;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              
+              <rect width="1200" height="630" fill="url(#bg)"/>
+              
+              <text x="600" y="200" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="white">WORDLE</text>
+              <text x="600" y="280" font-family="Arial, sans-serif" font-size="32" text-anchor="middle" fill="white">Русская версия</text>
+              <text x="600" y="350" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white">Угадайте слово из 5 букв за 6 попыток</text>
+              
+              <g transform="translate(400, 400)">
+                <rect x="0" y="0" width="60" height="60" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="30" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">С</text>
+                <rect x="70" y="0" width="60" height="60" fill="#c9b458" stroke="#d3d6da" stroke-width="2"/>
+                <text x="100" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">Л</text>
+                <rect x="140" y="0" width="60" height="60" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="170" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">О</text>
+                <rect x="210" y="0" width="60" height="60" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="240" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">В</text>
+                <rect x="280" y="0" width="60" height="60" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="310" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="white">О</text>
+              </g>
+              
+              <text x="600" y="550" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="white" opacity="0.8">%s</text>
+            </svg>
+            """, domain);
+    }
+
+    /**
+     * Генерирует SVG для превью игры с друзьями
+     */
+    private String generateFriendGamePreviewSvg(String domain) {
+        return String.format("""
+            <svg width="1200" height="630" xmlns="http://www.w3.org/2000/svg">
+              <defs>
+                <linearGradient id="bg" x1="0%%" y1="0%%" x2="100%%" y2="100%%">
+                  <stop offset="0%%" style="stop-color:#ff6b6b;stop-opacity:1" />
+                  <stop offset="100%%" style="stop-color:#ee5a24;stop-opacity:1" />
+                </linearGradient>
+              </defs>
+              
+              <rect width="1200" height="630" fill="url(#bg)"/>
+              
+              <text x="600" y="180" font-family="Arial, sans-serif" font-size="70" font-weight="bold" text-anchor="middle" fill="white">👥 ИГРА С ДРУГОМ</text>
+              <text x="600" y="250" font-family="Arial, sans-serif" font-size="36" text-anchor="middle" fill="white">Твой друг загадал слово!</text>
+              <text x="600" y="320" font-family="Arial, sans-serif" font-size="28" text-anchor="middle" fill="white">Попробуй отгадать его за 6 попыток</text>
+              
+              <g transform="translate(400, 380)">
+                <rect x="0" y="0" width="50" height="50" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="25" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="white">?</text>
+                <rect x="60" y="0" width="50" height="50" fill="#c9b458" stroke="#d3d6da" stroke-width="2"/>
+                <text x="85" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="white">?</text>
+                <rect x="120" y="0" width="50" height="50" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="145" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="white">?</text>
+                <rect x="180" y="0" width="50" height="50" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="205" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="white">?</text>
+                <rect x="240" y="0" width="50" height="50" fill="#6aaa64" stroke="#d3d6da" stroke-width="2"/>
+                <text x="265" y="35" font-family="Arial, sans-serif" font-size="20" font-weight="bold" text-anchor="middle" fill="white">?</text>
+              </g>
+              
+              <text x="600" y="500" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="white" font-weight="bold">Нажми, чтобы начать игру!</text>
+              <text x="600" y="550" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="white" opacity="0.8">%s</text>
+            </svg>
+            """, domain);
     }
 
     /**
