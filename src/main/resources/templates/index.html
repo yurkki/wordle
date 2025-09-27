@@ -2328,26 +2328,8 @@
                     const url = `${domain}/?word_id=${data.word_id}`;
                     const link = `Я загадал слово! Попробуй отгадать его за 6 попыток в игре #вордли.\n\nИграть: ${url}`;
                     
-                    // Копируем в буфер обмена
-                    navigator.clipboard.writeText(link).then(() => {
-                        document.getElementById('friendLinkResult').style.display = 'block';
-                        setTimeout(() => {
-                            document.getElementById('friendLinkResult').style.display = 'none';
-                        }, 3000);
-                    }).catch(() => {
-                        // Fallback для старых браузеров
-                        const textArea = document.createElement('textarea');
-                        textArea.value = link;
-                        document.body.appendChild(textArea);
-                        textArea.select();
-                        document.execCommand('copy');
-                        document.body.removeChild(textArea);
-                        
-                        document.getElementById('friendLinkResult').style.display = 'block';
-                        setTimeout(() => {
-                            document.getElementById('friendLinkResult').style.display = 'none';
-                        }, 3000);
-                    });
+                    // Улучшенное копирование с поддержкой мобильных устройств
+                    copyToClipboard(link);
                 } else {
                     alert('Ошибка при сохранении слова: ' + (data.error || 'Неизвестная ошибка'));
                 }
@@ -2356,6 +2338,129 @@
                 console.error('Ошибка:', error);
                 alert('Ошибка при сохранении слова');
             });
+        }
+
+        // Улучшенная функция копирования с поддержкой мобильных устройств
+        function copyToClipboard(text) {
+            // Проверяем поддержку современного Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopySuccess();
+                }).catch(() => {
+                    // Fallback для случаев, когда Clipboard API не работает
+                    fallbackCopyToClipboard(text);
+                });
+            } else {
+                // Используем fallback для старых браузеров и мобильных устройств
+                fallbackCopyToClipboard(text);
+            }
+        }
+
+        // Fallback метод копирования для мобильных устройств
+        function fallbackCopyToClipboard(text) {
+            // Создаем временный textarea
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            
+            // Делаем textarea невидимым, но доступным для фокуса
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            textArea.style.opacity = '0';
+            textArea.style.pointerEvents = 'none';
+            
+            document.body.appendChild(textArea);
+            
+            // Фокусируемся и выделяем текст
+            textArea.focus();
+            textArea.select();
+            textArea.setSelectionRange(0, 99999); // Для мобильных устройств
+            
+            try {
+                // Пытаемся скопировать
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopySuccess();
+                } else {
+                    // Если не удалось скопировать, показываем текст для ручного копирования
+                    showManualCopyDialog(text);
+                }
+            } catch (err) {
+                console.error('Ошибка при копировании:', err);
+                showManualCopyDialog(text);
+            } finally {
+                // Удаляем временный элемент
+                document.body.removeChild(textArea);
+            }
+        }
+
+        // Показываем успешное копирование
+        function showCopySuccess() {
+            document.getElementById('friendLinkResult').style.display = 'block';
+            setTimeout(() => {
+                document.getElementById('friendLinkResult').style.display = 'none';
+            }, 3000);
+        }
+
+        // Показываем диалог для ручного копирования (для мобильных устройств)
+        function showManualCopyDialog(text) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.8);
+                z-index: 10000;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                padding: 20px;
+                box-sizing: border-box;
+            `;
+            
+            modal.innerHTML = `
+                <div style="
+                    background: white;
+                    padding: 20px;
+                    border-radius: 10px;
+                    max-width: 90%;
+                    max-height: 80%;
+                    overflow-y: auto;
+                ">
+                    <h3 style="margin-top: 0; color: #333;">Скопируйте ссылку вручную</h3>
+                    <p style="color: #666; margin-bottom: 15px;">На мобильных устройствах автоматическое копирование может не работать.</p>
+                    <textarea readonly style="
+                        width: 100%;
+                        height: 120px;
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        border-radius: 5px;
+                        font-family: monospace;
+                        font-size: 14px;
+                        resize: vertical;
+                        box-sizing: border-box;
+                    ">${text}</textarea>
+                    <div style="margin-top: 15px; text-align: right;">
+                        <button onclick="this.closest('div').parentElement.remove()" style="
+                            background: #007bff;
+                            color: white;
+                            border: none;
+                            padding: 10px 20px;
+                            border-radius: 5px;
+                            cursor: pointer;
+                        ">Закрыть</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+            
+            // Автоматически выделяем текст в textarea
+            const textarea = modal.querySelector('textarea');
+            textarea.focus();
+            textarea.select();
         }
 
         // Функции для правил игры
