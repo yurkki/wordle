@@ -4,6 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Wordle - Русская версия</title>
+    
+    <!-- Open Graph мета-теги для превью в мессенджерах -->
+    <meta property="og:title" content="Wordle - Русская версия">
+    <meta property="og:description" content="Угадайте слово из 5 букв за 6 попыток! Играйте в русскую версию популярной игры Wordle. Слово дня или случайные слова - выбирайте режим игры.">
+    <meta property="og:image" content="https://wordle.kirouski.tech/images/wordle-preview.svg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:url" content="https://wordle.kirouski.tech">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Wordle">
+    
+    <!-- Twitter Card мета-теги -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Wordle - Русская версия">
+    <meta name="twitter:description" content="Угадайте слово из 5 букв за 6 попыток! Играйте в русскую версию популярной игры Wordle.">
+    <meta name="twitter:image" content="https://wordle.kirouski.tech/images/wordle-preview.svg">
+    
+    <!-- Дополнительные мета-теги -->
+    <meta name="description" content="Угадайте слово из 5 букв за 6 попыток! Играйте в русскую версию популярной игры Wordle. Слово дня или случайные слова - выбирайте режим игры.">
+    <meta name="keywords" content="wordle, игра, слова, русский, угадать, головоломка">
+    <meta name="author" content="Wordle Team">
     <style>
         * {
             margin: 0;
@@ -130,9 +151,16 @@
             justify-content: center;
         }
 
-        .stats-btn {
+        .friend-btn {
             position: absolute;
             left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        .stats-btn {
+            position: absolute;
+            left: 50px;
             top: 50%;
             transform: translateY(-50%);
         }
@@ -150,6 +178,10 @@
         .settings-btn:hover {
             background: #e9ecef;
             transform: scale(1.1);
+        }
+
+        .friend-btn:hover {
+            transform: translateY(-50%) scale(1.1);
         }
 
         .stats-btn:hover {
@@ -187,17 +219,6 @@
             box-sizing: border-box;
         }
 
-        .close {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
-            font-size: 24px;
-            font-weight: bold;
-            cursor: pointer;
-            color: #aaa;
-            line-height: 1;
-        }
 
         .close:hover {
             color: #000;
@@ -499,16 +520,13 @@
         }
 
         .close {
-            position: absolute;
-            right: 15px;
-            top: 50%;
-            transform: translateY(-50%);
             color: white;
             font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             transition: opacity 0.3s ease;
             line-height: 1;
+            margin-left: auto;
         }
 
         .close:hover {
@@ -658,6 +676,78 @@
         .top-players {
             max-height: 200px;
             overflow-y: auto;
+        }
+
+        /* Стили для игры с друзьями */
+        .friend-game-form {
+            margin: 20px 0;
+            text-align: center;
+        }
+
+        .friend-word-input {
+            width: 100%;
+            padding: 12px;
+            font-size: 18px;
+            text-align: center;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .friend-word-input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
+        }
+
+        .copy-btn {
+            width: 100%;
+            padding: 12px;
+            font-size: 16px;
+            font-weight: bold;
+        }
+
+        .copy-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .friend-link-result {
+            margin-top: 15px;
+            padding: 10px;
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            border-radius: 5px;
+            color: #155724;
+            text-align: center;
+        }
+
+        /* Индикатор игры с другом */
+        .friend-game-indicator {
+            margin: 10px 0;
+            text-align: center;
+        }
+
+        .friend-game-banner {
+            display: inline-flex;
+            align-items: center;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
+        }
+
+        .friend-icon {
+            margin-right: 8px;
+            font-size: 1.2em;
+        }
+
+        .friend-text {
+            font-size: 0.9em;
         }
 
         .player-result {
@@ -1201,6 +1291,9 @@
         
         <!-- Заголовок с кнопками -->
         <div class="header-container">
+            <button id="friendBtn" onclick="openFriendGame()" title="Сыграй с другом" class="settings-btn friend-btn">
+                👥
+            </button>
             <button id="statsBtn" onclick="openStats()" title="Статистика дня" class="settings-btn stats-btn">
                 📊
             </button>
@@ -1231,6 +1324,14 @@
                  th:text="${gameState.status == T(org.example.wordle.model.GameStatus).WON ? 'Поздравляем! Вы выиграли!' : 
                           gameState.status == T(org.example.wordle.model.GameStatus).LOST ? 'Игра окончена. Загаданное слово: ' + gameState.targetWord : 
                           ''}">
+            </div>
+            
+            <!-- Индикатор игры с другом -->
+            <div th:if="${friendGame}" class="friend-game-indicator">
+                <div class="friend-game-banner">
+                    <span class="friend-icon">👥</span>
+                    <span class="friend-text">Игра с другом</span>
+                </div>
             </div>
         </div>
 
@@ -1406,6 +1507,12 @@
                 // Обработка клавиатуры
                 document.addEventListener('keydown', (e) => {
                     if (this.isGameOver) return;
+                    
+                    // Блокируем ввод если открыто модальное окно игры с друзьями
+                    const friendModal = document.getElementById('friendModal');
+                    if (friendModal && friendModal.style.display === 'block') {
+                        return;
+                    }
 
                     const currentCell = this.getCurrentCell();
                     if (!currentCell) return;
@@ -1446,6 +1553,11 @@
 
                 keyboard.addEventListener('click', (e) => {
                     if (e.target.classList.contains('key') && !this.isGameOver) {
+                        // Блокируем ввод если открыто модальное окно игры с друзьями
+                        const friendModal = document.getElementById('friendModal');
+                        if (friendModal && friendModal.style.display === 'block') {
+                            return;
+                        }
                         const key = e.target.dataset.key;
                         
                         // Запускаем таймер при первом вводе
@@ -2128,6 +2240,23 @@
                 closeSettings();
                 closeStats();
                 closeRules();
+                closeFriendGame();
+            }
+        });
+
+        // Обработчики для игры с друзьями
+        document.addEventListener('DOMContentLoaded', function() {
+            const friendWordInput = document.getElementById('friendWordInput');
+            const copyLinkBtn = document.getElementById('copyLinkBtn');
+            
+            if (friendWordInput && copyLinkBtn) {
+                friendWordInput.addEventListener('input', function() {
+                    const word = this.value.toUpperCase();
+                    this.value = word;
+                    
+                    // Включаем кнопку только если введено ровно 5 букв
+                    copyLinkBtn.disabled = word.length !== 5;
+                });
             }
         });
 
@@ -2143,6 +2272,90 @@
             const modal = document.getElementById('statsModal');
             modal.style.display = 'none';
             document.body.style.overflow = 'auto'; // Восстанавливаем прокрутку
+        }
+
+        // Функции для игры с друзьями
+        function openFriendGame() {
+            const modal = document.getElementById('friendModal');
+            modal.style.display = 'block';
+            document.body.style.overflow = 'hidden';
+            
+            // Очищаем форму
+            document.getElementById('friendWordInput').value = '';
+            document.getElementById('copyLinkBtn').disabled = true;
+            document.getElementById('friendLinkResult').style.display = 'none';
+            
+            // Устанавливаем фокус на поле ввода
+            setTimeout(() => {
+                document.getElementById('friendWordInput').focus();
+            }, 100);
+        }
+
+        function closeFriendGame() {
+            const modal = document.getElementById('friendModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        function copyFriendLink() {
+            const word = document.getElementById('friendWordInput').value;
+            if (word.length !== 5) {
+                alert('Введите слово из 5 букв');
+                return;
+            }
+
+            // Сначала получаем конфигурацию приложения
+            fetch('/api/config')
+            .then(response => response.json())
+            .then(config => {
+                if (!config.success) {
+                    throw new Error('Ошибка получения конфигурации');
+                }
+                
+                const domain = config.domain;
+                
+                // Отправляем слово на сервер для получения word_id
+                return fetch('/api/friend/save-word', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: 'word=' + encodeURIComponent(word)
+                }).then(response => response.json()).then(data => ({ data, domain }));
+            })
+            .then(({ data, domain }) => {
+                if (data.success) {
+                    const url = `${domain}/?word_id=${data.word_id}`;
+                    const link = `Я загадал слово! Попробуй отгадать его за 6 попыток в игре #вордли.\n\nИграть: ${url}`;
+                    
+                    // Копируем в буфер обмена
+                    navigator.clipboard.writeText(link).then(() => {
+                        document.getElementById('friendLinkResult').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('friendLinkResult').style.display = 'none';
+                        }, 3000);
+                    }).catch(() => {
+                        // Fallback для старых браузеров
+                        const textArea = document.createElement('textarea');
+                        textArea.value = link;
+                        document.body.appendChild(textArea);
+                        textArea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textArea);
+                        
+                        document.getElementById('friendLinkResult').style.display = 'block';
+                        setTimeout(() => {
+                            document.getElementById('friendLinkResult').style.display = 'none';
+                        }, 3000);
+                    });
+                } else {
+                    alert('Ошибка при сохранении слова: ' + (data.error || 'Неизвестная ошибка'));
+                }
+            })
+            .catch(error => {
+                console.error('Ошибка:', error);
+                alert('Ошибка при сохранении слова');
+            });
         }
 
         // Функции для правил игры
@@ -2339,6 +2552,26 @@
             </div>
             <div class="modal-footer">
                 <button onclick="closeStats()" class="btn btn-primary">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно игры с друзьями -->
+    <div id="friendModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>👥 СЫГРАЙ С ДРУГОМ</h2>
+                <span class="close" onclick="closeFriendGame()">&times;</span>
+            </div>
+            <div class="modal-body">
+                <p>Брось вызов другу, используя любое русское слово, состоящее из 5 букв.</p>
+                <div class="friend-game-form">
+                    <input type="text" id="friendWordInput" placeholder="Введи слово из 5 букв" maxlength="5" class="friend-word-input">
+                    <button id="copyLinkBtn" onclick="copyFriendLink()" class="btn btn-primary copy-btn" disabled>Скопировать</button>
+                </div>
+                <div id="friendLinkResult" class="friend-link-result" style="display: none;">
+                    <p>Ссылка скопирована в буфер обмена!</p>
+                </div>
             </div>
         </div>
     </div>

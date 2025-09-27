@@ -6,7 +6,9 @@ import org.example.wordle.model.WordGuess;
 import org.example.wordle.model.DailyStats;
 import org.example.wordle.service.WordleService;
 import org.example.wordle.service.DailyWordService;
+import org.example.wordle.service.FriendGameService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -29,15 +31,47 @@ public class WordleController {
     @Autowired
     private DailyWordService dailyWordService;
     
+    @Autowired
+    private FriendGameService friendGameService;
+    
+    @Value("${app.domain}")
+    private String appDomain;
+    
     /**
      * Главная страница игры
      */
     @GetMapping("/")
-    public String index(Model model, HttpSession session) {
+    public String index(@RequestParam(required = false) String word_id, Model model, HttpSession session) {
         GameState gameState = (GameState) session.getAttribute("gameState");
         
+        // Если передан word_id, создаем игру с загаданным словом
+        if (word_id != null && !word_id.isEmpty()) {
+            String friendWord = friendGameService.getFriendWord(word_id);
+            if (friendWord != null) {
+                // Создаем игру в режиме GUESS с загаданным словом
+                gameState = new GameState(friendWord, GameMode.GUESS);
+                gameState.setPlayerId(generatePlayerId());
+                session.setAttribute("gameState", gameState);
+                
+                System.out.println("🎯 Создана игра с другом по слову: " + friendWord + " (ID: " + word_id + ")");
+                
+                model.addAttribute("gameState", gameState);
+                model.addAttribute("todayDate", dailyWordService.getTodayDateString());
+                model.addAttribute("playerId", gameState.getPlayerId());
+                model.addAttribute("friendGame", true);
+                model.addAttribute("friendWordId", word_id);
+                
+                // Игра с другом создана
+                
+                return "index";
+            } else {
+                System.out.println("❌ Игра с ID " + word_id + " не найдена");
+                model.addAttribute("error", "Игра не найдена или устарела");
+            }
+        }
+        
+        // Обычная логика для главной страницы
         if (gameState == null) {
-            // По умолчанию создаем игру в режиме "Слово дня"
             gameState = wordleService.createGame(GameMode.DAILY);
             session.setAttribute("gameState", gameState);
         }
@@ -282,4 +316,66 @@ public class WordleController {
             return ResponseEntity.status(500).body(errorResponse);
         }
     }
+
+    /**
+     * Сохранить слово для игры с другом
+     */
+    @PostMapping("/api/friend/save-word")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> saveFriendWord(@RequestParam String word) {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            
+            if (word == null || word.length() != 5) {
+                response.put("success", false);
+                response.put("error", "Слово должно содержать ровно 5 букв");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            String wordId = friendGameService.saveFriendWord(word);
+            response.put("success", true);
+            response.put("word_id", wordId);
+            
+            System.out.println("✅ Сохранено слово для игры с другом: " + word + " (ID: " + wordId + ")");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error saving friend word: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Ошибка при сохранении слова");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    /**
+     * Получить конфигурацию приложения
+     */
+    @GetMapping("/api/config")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getAppConfig() {
+        try {
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("domain", appDomain);
+            
+            System.out.println("📋 Конфигурация приложения: домен = " + appDomain);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error getting app config: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("error", "Ошибка получения конфигурации");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+
+    /**
+     * Генерирует уникальный ID игрока
+     */
+    private String generatePlayerId() {
+        return "player_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 1000);
+    }
+
 }
