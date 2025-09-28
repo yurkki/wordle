@@ -538,19 +538,19 @@
         }
 
         .btn-primary {
-            background: linear-gradient(135deg, #10b981, #059669);
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
             color: #ffffff;
             border: none;
             border-radius: 12px;
             padding: 12px 24px;
             font-weight: 700;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
         }
 
         .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
         }
 
         .btn-secondary {
@@ -618,24 +618,26 @@
 
         .modal-header {
             padding: 1.5rem 2rem;
-            background: linear-gradient(135deg, #10b981, #059669);
-            color: #ffffff;
+            background: #ffffff;
+            color: #374151;
             border-radius: 12px 12px 0 0;
             display: flex;
             justify-content: space-between;
             align-items: center;
+            border-bottom: 1px solid #e5e7eb;
         }
 
         .modal-header h2 {
             margin: 0;
             font-size: 1.5rem;
-            font-weight: 700;
-            color: #ffffff;
+            font-weight: 600;
+            color: #374151;
+            text-align: center;
         }
 
         .close {
-            color: #ffffff;
-            font-size: 28px;
+            color: #6b7280;
+            font-size: 24px;
             font-weight: bold;
             cursor: pointer;
             transition: all 0.3s ease;
@@ -646,8 +648,9 @@
         }
 
         .close:hover {
-            background-color: rgba(255, 255, 255, 0.2);
-            transform: scale(1.1);
+            color: #374151;
+            background-color: #f3f4f6;
+            transform: scale(1.05);
         }
 
         .modal-body {
@@ -798,6 +801,12 @@
         }
 
         /* Стили для игры с друзьями */
+        .friend-description {
+            color: #6b7280;
+            margin-bottom: 24px;
+            line-height: 1.5;
+        }
+
         .friend-game-form {
             margin: 24px 0;
             text-align: center;
@@ -805,16 +814,17 @@
 
         .friend-word-input {
             width: 100%;
-            padding: 16px;
+            padding: 12px 16px;
             font-size: 18px;
             text-align: center;
-            border: 2px solid #e5e7eb;
-            border-radius: 12px;
-            margin-bottom: 20px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            margin-bottom: 16px;
             text-transform: uppercase;
             letter-spacing: 2px;
             background-color: #ffffff;
             transition: all 0.3s ease;
+            font-family: 'JetBrains Mono', monospace;
         }
 
         .friend-word-input:focus {
@@ -826,16 +836,40 @@
 
         .copy-btn {
             width: 100%;
-            padding: 16px;
+            padding: 12px 16px;
             font-size: 16px;
-            font-weight: 700;
-            background: linear-gradient(135deg, #10b981, #059669);
+            font-weight: 600;
+            background: #e9d5ff;
             color: #ffffff;
             border: none;
-            border-radius: 12px;
-            cursor: pointer;
+            border-radius: 8px;
+            cursor: not-allowed;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .copy-btn:not(:disabled) {
+            background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+            color: #ffffff;
+            cursor: pointer;
+        }
+
+        .copy-btn:not(:disabled):hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+        }
+
+        .copy-btn.copied {
+            background: #10b981;
+            color: #ffffff;
+        }
+
+        .copy-icon {
+            width: 16px;
+            height: 16px;
         }
 
         .copy-btn:disabled {
@@ -851,14 +885,140 @@
         }
 
         .friend-link-result {
-            margin-top: 20px;
-            padding: 16px;
+            margin-top: 16px;
+            padding: 12px 16px;
             background: #d1fae5;
             border: 1px solid #a7f3d0;
-            border-radius: 12px;
+            border-radius: 8px;
             color: #065f46;
-            font-weight: 600;
+            font-weight: 500;
             text-align: center;
+            font-size: 14px;
+        }
+
+        /* Стили для модального окна настроек */
+        .settings-content {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .setting-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .setting-label {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+            font-weight: 500;
+            color: #374151;
+        }
+
+        .setting-checkbox {
+            width: 18px;
+            height: 18px;
+            accent-color: #8b5cf6;
+        }
+
+        .setting-text {
+            font-size: 16px;
+        }
+
+        .setting-select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background-color: #ffffff;
+            font-size: 16px;
+            color: #374151;
+            transition: all 0.3s ease;
+        }
+
+        .setting-select:focus {
+            outline: none;
+            border-color: #8b5cf6;
+            box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .setting-description {
+            color: #6b7280;
+            font-size: 14px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        /* Стили для модального окна правил */
+        .rules-content {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            text-align: left;
+        }
+
+        .rule-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #374151;
+            margin: 0 0 4px 0;
+            text-align: left;
+        }
+
+        .rule-description {
+            color: #000000;
+            font-size: 16px;
+            line-height: 1.3;
+            margin: 0 0 4px 0;
+            text-align: left;
+        }
+
+        .color-examples {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 4px;
+        }
+
+        .color-example {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .letter-example {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .letter-example.correct {
+            background-color: #10b981;
+            color: #ffffff;
+        }
+
+        .letter-example.present {
+            background-color: #f59e0b;
+            color: #ffffff;
+        }
+
+        .letter-example.absent {
+            background-color: #6b7280;
+            color: #ffffff;
+        }
+
+        .color-description {
+            color: #000000;
+            font-size: 16px;
+            text-align: left;
         }
 
         /* Индикатор игры с другом */
@@ -1030,10 +1190,9 @@
         }
 
         .modal-footer {
-            padding: 1.25rem 1.5rem;
+            padding: 0.625rem 1.5rem 1.25rem 1.5rem;
             text-align: center;
-            border-top: 1px solid var(--border);
-            background: var(--muted);
+            background: #ffffff;
         }
 
         @keyframes fadeIn {
@@ -1380,8 +1539,6 @@
                     margin-bottom: 10px;
                 }
 
-                .mode-selector {
-                }
 
                 .letter-cell {
                     width: 40px;
@@ -2621,6 +2778,7 @@
 
                     // Улучшенное копирование с поддержкой мобильных устройств
                     copyToClipboard(link);
+                    updateCopyButton();
                 } else {
                     alert('Ошибка при сохранении слова: ' + (data.error || 'Неизвестная ошибка'));
                 }
@@ -2725,6 +2883,30 @@
         setTimeout(() => {
             document.getElementById('friendLinkResult').style.display = 'none';
         }, 3000);
+    }
+
+    // Обновляем кнопку копирования
+    function updateCopyButton() {
+        const copyBtn = document.getElementById('copyLinkBtn');
+        copyBtn.classList.add('copied');
+        copyBtn.innerHTML = `
+            <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 6L9 17l-5-5"></path>
+            </svg>
+            Скопировано
+        `;
+        
+        // Возвращаем кнопку в исходное состояние через 2 секунды
+        setTimeout(() => {
+            copyBtn.classList.remove('copied');
+            copyBtn.innerHTML = `
+                <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+                Скопировать
+            `;
+        }, 2000);
     }
 
     // Функции для правил игры
@@ -2874,31 +3056,33 @@
 <div id="settingsModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>⚙️ Настройки</h2>
+            <h2>Настройки</h2>
             <span class="close" onclick="closeSettings()">&times;</span>
         </div>
         <div class="modal-body">
-            <div class="setting-item">
-                <label for="soundEnabled">
-                    <input type="checkbox" id="soundEnabled" checked>
-                    🔊 Звуки
-                </label>
-                <p class="setting-description">Воспроизводить звук разочарования при полном промахе</p>
-            </div>
+            <div class="settings-content">
+                <div class="setting-item">
+                    <label for="soundEnabled" class="setting-label">
+                        <input type="checkbox" id="soundEnabled" class="setting-checkbox" checked>
+                        <span class="setting-text">Звуки</span>
+                    </label>
+                    <p class="setting-description">Воспроизводить звук разочарования при полном промахе</p>
+                </div>
 
-            <div class="setting-item">
-                <label for="attemptsCount">
-                    🎯 Угадаю слово за:
-                </label>
-                <select id="attemptsCount" class="attempts-select">
-                    <option value="1">1 попытку</option>
-                    <option value="2">2 попытки</option>
-                    <option value="3">3 попытки</option>
-                    <option value="4">4 попытки</option>
-                    <option value="5">5 попыток</option>
-                    <option value="6" selected>6 попыток</option>
-                </select>
-                <p class="setting-description">Количество попыток в режиме "Угадывать" (от 1 до 6)</p>
+                <div class="setting-item">
+                    <label for="attemptsCount" class="setting-label">
+                        <span class="setting-text">Угадаю слово за:</span>
+                    </label>
+                    <select id="attemptsCount" class="setting-select">
+                        <option value="1">1 попытку</option>
+                        <option value="2">2 попытки</option>
+                        <option value="3">3 попытки</option>
+                        <option value="4">4 попытки</option>
+                        <option value="5">5 попыток</option>
+                        <option value="6" selected>6 попыток</option>
+                    </select>
+                    <p class="setting-description">Количество попыток в режиме "Угадывать" (от 1 до 6)</p>
+                </div>
             </div>
         </div>
         <div class="modal-footer">
@@ -2929,15 +3113,19 @@
 <div id="friendModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>👥 СЫГРАЙ С ДРУГОМ</h2>
+            <h2>Сыграй с другом</h2>
             <span class="close" onclick="closeFriendGame()">&times;</span>
         </div>
         <div class="modal-body">
-            <p>Брось вызов другу, используя любое русское слово, состоящее из 5 букв.</p>
+            <p class="friend-description">Брось вызов другу, используя любое русское слово, состоящее из 5 букв.</p>
             <div class="friend-game-form">
                 <input type="text" id="friendWordInput" placeholder="Введи слово из 5 букв" maxlength="5"
                        class="friend-word-input">
-                <button id="copyLinkBtn" onclick="copyFriendLink()" class="btn btn-primary copy-btn" disabled>
+                <button id="copyLinkBtn" onclick="copyFriendLink()" class="copy-btn" disabled>
+                    <svg class="copy-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                    </svg>
                     Скопировать
                 </button>
             </div>
@@ -2952,55 +3140,44 @@
 <div id="rulesModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>❓ Правила игры</h2>
+            <h2>Правила игры</h2>
             <span class="close" onclick="closeRules()">&times;</span>
         </div>
         <div class="modal-body">
             <div class="rules-content">
-                <div class="rule-section">
-                    <h3>🎯 Цель игры</h3>
-                    <p>Угадайте слово из 5 букв за 6 попыток</p>
-                </div>
+                <h3 class="rule-title">Цель игры:</h3>
+                <p class="rule-description">Угадайте слово из 5 букв за 6 попыток</p>
 
-                <div class="rule-section">
-                    <h3>🎨 Цветовые подсказки</h3>
-                    <div class="color-examples">
-                        <div class="color-example">
-                            <div class="letter-example correct">А</div>
-                            <span>Зеленый - буква на правильном месте</span>
-                        </div>
-                        <div class="color-example">
-                            <div class="letter-example present">Б</div>
-                            <span>Желтый - буква есть в слове, но на другом месте</span>
-                        </div>
-                        <div class="color-example">
-                            <div class="letter-example absent">В</div>
-                            <span>Серый - буквы нет в слове</span>
-                        </div>
+                <h3 class="rule-title">Цветовые подсказки:</h3>
+                <div class="color-examples">
+                    <div class="color-example">
+                        <div class="letter-example correct">А</div>
+                        <span class="color-description">Зеленый - буква на правильном месте</span>
+                    </div>
+                    <div class="color-example">
+                        <div class="letter-example present">Б</div>
+                        <span class="color-description">Желтый - буква есть в слове, но на другом месте</span>
+                    </div>
+                    <div class="color-example">
+                        <div class="letter-example absent">В</div>
+                        <span class="color-description">Серый - буквы нет в слове</span>
                     </div>
                 </div>
 
-
-                <div class="rule-section">
-                    <h3>🎮 Режимы игры</h3>
-                    <div class="mode-rules">
-                        <div class="mode-rule">
-                            <strong>Слово дня:</strong> Одно слово для всех игроков, обновляется каждый день
-                        </div>
-                        <div class="mode-rule">
-                            <strong>Угадывать:</strong> Случайные слова, неограниченное количество игр
-                        </div>
-                    </div>
-                </div>
+                <h3 class="rule-title">Режимы игры:</h3>
+                <p class="rule-description"><strong>Слово дня:</strong> Одно слово для всех игроков, обновляется каждый день</p>
+                <p class="rule-description"><strong>Угадывать:</strong> Случайные слова, неограниченное количество игр</p>
             </div>
         </div>
         <div class="modal-footer">
-            <button onclick="closeRules()" class="btn btn-primary">Понятно!</button>
+            <button onclick="closeRules()" class="btn btn-primary">ИГРАТЬ</button>
         </div>
     </div>
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <script>
-        lucide.createIcons();
-    </script>
+</div>
+
+<script src="https://unpkg.com/lucide@latest"></script>
+<script>
+    lucide.createIcons();
+</script>
 </body>
 </html>
