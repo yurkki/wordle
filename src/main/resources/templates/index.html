@@ -1431,37 +1431,42 @@
 
 
         @media (max-width: 600px) {
-            body {
-                padding: 0;
-                margin: 0;
-                min-height: 100vh;
-                background: #ffffff;
-            }
-            
             .container {
-                padding: 15px;
-                margin: 5px;
+                padding: 10px;
                 max-width: 100%;
-                overflow-x: hidden;
-                min-height: calc(100vh - 20px);
-                display: flex;
-                flex-direction: column;
+            }
+
+            .header-container {
+                margin-bottom: 10px;
+            }
+
+            .header-container h1 {
+                font-size: 1.8em;
+                margin: 0;
+            }
+
+            .settings-btn {
+                width: 35px;
+                height: 35px;
+                font-size: 14px;
+            }
+
+            .game-board {
+                gap: 3px;
+                margin: 10px 0;
             }
 
             .letter-cell {
-                width: 50px;
-                height: 50px;
-                font-size: 1.5em;
+                width: 45px;
+                height: 45px;
+                font-size: 1.3em;
             }
 
             .keyboard {
-                padding: 15px;
-                margin: 4px 0 0 0;
-                gap: 3px;
+                margin: 3px 0 0 0;
                 width: 100%;
-                max-width: 25rem;
-                box-sizing: border-box;
-                background: transparent;
+                padding: 8px;
+                gap: 2px;
             }
 
             .keyboard-row {
@@ -1497,7 +1502,7 @@
 
                 .game-board {
                     gap: 3px;
-                    margin-bottom: 12px;
+                    margin: 5px 0;
                 }
 
                 .word-row {
@@ -1505,7 +1510,6 @@
                 }
 
                 .keyboard {
-                    padding: 12px;
                     margin: 3px 0 0 0;
                     width: 100%;
                     max-width: 25rem;
@@ -1534,24 +1538,23 @@
 
             /* Дополнительная оптимизация для очень маленьких экранов */
             @media (max-width: 375px) {
-                body {
-                    padding: 5px;
-                }
-
                 .container {
-                    padding: 12px;
-                    margin: 2px;
+                    padding: 8px;
                 }
 
-                h1 {
-                    font-size: 1.8em;
-                    margin-bottom: 10px;
+                .header-container {
+                    margin-bottom: 5px;
                 }
 
-                .game-info {
-                    margin-bottom: 10px;
+                .header-container h1 {
+                    font-size: 1.6em;
+                    margin: 0;
                 }
 
+                .game-board {
+                    gap: 2px;
+                    margin: 5px 0;
+                }
 
                 .letter-cell {
                     width: 40px;
@@ -1559,25 +1562,14 @@
                     font-size: 1.2em;
                 }
 
-                .game-board {
-                    gap: 2px;
-                    margin-bottom: 10px;
+                .keyboard {
+                    margin: 2px 0 0 0;
+                    padding: 6px;
                 }
 
                 .word-row {
                     gap: 2px;
                 }
-
-            .keyboard {
-                padding: 10px;
-                margin: 2px 0 0 0;
-                background: transparent;
-            }
-            
-            /* Убираем лишний отступ снизу */
-            .container {
-                padding-bottom: 0;
-            }
 
                 .key {
                     min-width: 22px;
