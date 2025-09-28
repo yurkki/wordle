@@ -2575,6 +2575,10 @@
             this.closeModal();
             // Переключаемся на режим "Угадывать"
             this.switchMode('guess');
+            // Сбрасываем к базовому состоянию (возвращаем название режима)
+            if (typeof window.resetToBaseState === 'function') {
+                window.resetToBaseState();
+            }
         }
 
         startNewGame() {
@@ -2640,6 +2644,53 @@
     // Инициализация игры при загрузке страницы
     document.addEventListener('DOMContentLoaded', function () {
         const game = new WordleGame();
+        
+        // Обработка параметров URL для игры с другом
+        function handleFriendGameParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const friendGame = urlParams.get('friend') === 'true';
+            const wordId = urlParams.get('wordId');
+            
+            if (friendGame && wordId) {
+                // Полностью удаляем плашку "Игра с другом"
+                const friendGameIndicator = document.querySelector('.friend-game-indicator');
+                if (friendGameIndicator) {
+                    friendGameIndicator.remove();
+                }
+                
+                // Меняем название режима "Угадывать" на "Игра с другом"
+                const guessLabel = document.querySelector('label[for="mode-guess"]');
+                if (guessLabel) {
+                    guessLabel.textContent = 'Игра с другом';
+                }
+                
+                // Переключаемся на режим "Угадывать" (который теперь называется "Игра с другом")
+                const guessMode = document.getElementById('mode-guess');
+                if (guessMode) {
+                    guessMode.checked = true;
+                    guessMode.dispatchEvent(new Event('change'));
+                }
+            }
+        }
+
+        // Функция для возврата к базовому состоянию
+        window.resetToBaseState = function() {
+            // Возвращаем название режима обратно
+            const guessLabel = document.querySelector('label[for="mode-guess"]');
+            if (guessLabel) {
+                guessLabel.textContent = 'Угадывать';
+            }
+            
+            // Переключаемся на режим "Слово дня"
+            const dailyMode = document.getElementById('mode-daily');
+            if (dailyMode) {
+                dailyMode.checked = true;
+                dailyMode.dispatchEvent(new Event('change'));
+            }
+        }
+
+        // Вызываем обработку параметров при загрузке страницы
+        handleFriendGameParams();
 
         // Сброс подсветки клавиатуры при новой игре
         document.addEventListener('click', function (e) {
