@@ -316,13 +316,13 @@
         }
 
         .target-word {
-            font-weight: 600;
-            font-size: 1.1em;
+            font-weight: 500;
+            font-size: 1em;
             color: #000000;
             background: #f8fafc;
-            padding: 6px 8px;
+            padding: 5px 8px;
             border-radius: 8px;
-            margin: 6px 0;
+            margin: 4px 0;
             border: 1px solid #e2e8f0;
             text-align: center;
         }
@@ -1059,31 +1059,6 @@
             text-align: left;
         }
 
-        /* Индикатор игры с другом */
-        .friend-game-indicator {
-            margin: 10px 0;
-            text-align: center;
-        }
-
-        .friend-game-banner {
-            display: inline-flex;
-            align-items: center;
-            background: linear-gradient(135deg, #ff6b6b, #ee5a24);
-            color: white;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-weight: bold;
-            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.3);
-        }
-
-        .friend-icon {
-            margin-right: 8px;
-            font-size: 1.2em;
-        }
-
-        .friend-text {
-            font-size: 0.9em;
-        }
 
         .player-result {
             display: flex;
@@ -1775,13 +1750,6 @@
                           ''}">
     </div>
 
-    <!-- Индикатор игры с другом -->
-    <div th:if="${friendGame}" class="friend-game-indicator">
-        <div class="friend-game-banner">
-            <span class="friend-icon">👥</span>
-            <span class="friend-text">Игра с другом</span>
-        </div>
-    </div>
 </div>
 
 <div th:if="${error}" class="error" th:text="${error}"></div>
@@ -2573,12 +2541,13 @@
 
         switchToGuessMode() {
             this.closeModal();
+            // Возвращаем название режима обратно к "Угадывать"
+            const guessLabel = document.querySelector('label[for="mode-guess"]');
+            if (guessLabel) {
+                guessLabel.textContent = 'Угадывать';
+            }
             // Переключаемся на режим "Угадывать"
             this.switchMode('guess');
-            // Сбрасываем к базовому состоянию (возвращаем название режима)
-            if (typeof window.resetToBaseState === 'function') {
-                window.resetToBaseState();
-            }
         }
 
         startNewGame() {
@@ -2652,12 +2621,6 @@
             const wordId = urlParams.get('wordId');
             
             if (friendGame && wordId) {
-                // Полностью удаляем плашку "Игра с другом"
-                const friendGameIndicator = document.querySelector('.friend-game-indicator');
-                if (friendGameIndicator) {
-                    friendGameIndicator.remove();
-                }
-                
                 // Меняем название режима "Угадывать" на "Игра с другом"
                 const guessLabel = document.querySelector('label[for="mode-guess"]');
                 if (guessLabel) {
