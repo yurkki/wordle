@@ -292,61 +292,63 @@
         }
 
         .modal-buttons {
-            margin-top: 30px;
-        }
-
-        #gameResultContent h2 {
-            margin: 0 0 25px 0;
-            font-size: 2.2em;
+            margin-top: 15px;
         }
 
         #gameResultContent p {
-            margin: 15px 0;
-            font-size: 1.2em;
-            line-height: 1.5;
+            margin: 4px 0;
+            font-size: 1em;
+            line-height: 1.4;
         }
 
         .success-message {
-            color: #28a745;
+            color: #10b981;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
 
         .failure-message {
-            color: #dc3545;
+            color: #ef4444;
+            font-size: 1.2em;
+            font-weight: 600;
+            margin-bottom: 6px;
         }
 
         .target-word {
-            font-weight: bold;
-            font-size: 1.4em;
-            color: #333;
-            background: #f8f9fa;
-            padding: 15px 20px;
-            border-radius: 10px;
-            margin: 20px 0;
-            border: 2px solid #e9ecef;
+            font-weight: 600;
+            font-size: 1.1em;
+            color: #000000;
+            background: #f8fafc;
+            padding: 6px 8px;
+            border-radius: 8px;
+            margin: 6px 0;
+            border: 1px solid #e2e8f0;
+            text-align: center;
         }
 
         .time-info {
-            background: #e8f4fd;
-            padding: 12px 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            font-size: 1.2em;
+            background: #f8fafc;
+            padding: 5px 8px;
+            border-radius: 8px;
+            margin: 4px 0;
+            font-size: 1em;
             text-align: center;
-            color: #2c5aa0;
-            border: 2px solid #b3d9ff;
-            font-weight: 600;
+            color: #000000;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
         }
 
         .rank-info {
-            background: #fff3cd;
-            padding: 12px 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            font-size: 1.2em;
+            background: #f8fafc;
+            padding: 5px 8px;
+            border-radius: 8px;
+            margin: 4px 0;
+            font-size: 1em;
             text-align: center;
-            color: #856404;
-            border: 2px solid #ffeaa7;
-            font-weight: 600;
+            color: #000000;
+            border: 1px solid #e2e8f0;
+            font-weight: 500;
         }
 
         .status.won {
@@ -654,7 +656,7 @@
         }
 
         .modal-body {
-            padding: 2rem;
+            padding: 1rem;
             flex: 1;
             overflow-y: auto;
             color: #374151;
@@ -721,83 +723,119 @@
         }
 
         .stats-container {
-            padding: 20px 0;
+            padding: 0;
         }
 
         .stats-summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
         }
 
         .stat-card {
-            background: #f8f9fa;
-            border-radius: 10px;
-            padding: 15px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            padding: 12px;
             text-align: center;
-            border: 2px solid #e9ecef;
         }
 
         .stat-number {
-            font-size: 2em;
+            font-size: 1.3em;
             font-weight: bold;
-            color: #007bff;
-            margin-bottom: 5px;
+            color: #1e293b;
+            margin-bottom: 4px;
         }
 
         .stat-label {
-            font-size: 0.9em;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 0.85em;
+            color: #64748b;
         }
 
         .stats-section {
-            margin-bottom: 25px;
+            margin-bottom: 16px;
         }
 
         .stats-section h3 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1.2em;
-            border-bottom: 2px solid #007bff;
-            padding-bottom: 5px;
+            color: #374151;
+            margin-bottom: 8px;
+            font-size: 1em;
+            font-weight: 600;
         }
 
         .attempts-distribution {
-            display: grid;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 10px;
-            margin-bottom: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
         }
 
         .attempt-bar {
-            background: #e9ecef;
-            border-radius: 5px;
-            padding: 10px;
-            text-align: center;
-            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
         }
 
         .attempt-bar.filled {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
+            background: #e0f2fe;
+            border-color: #0ea5e9;
         }
 
         .attempt-number {
-            font-weight: bold;
-            font-size: 1.1em;
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9em;
         }
 
         .attempt-count {
+            font-weight: 600;
+            color: #0ea5e9;
             font-size: 0.9em;
-            margin-top: 5px;
         }
 
         .top-players {
-            max-height: 200px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 150px;
             overflow-y: auto;
+        }
+
+        .player-result {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 10px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 6px;
+        }
+
+        .player-rank {
+            font-weight: 600;
+            color: #374151;
+            font-size: 0.9em;
+        }
+
+        .player-attempts {
+            font-size: 0.8em;
+            color: #64748b;
+        }
+
+        .player-time {
+            font-size: 0.75em;
+            color: #94a3b8;
+        }
+
+        .stats-loading {
+            text-align: center;
+            color: #64748b;
+            font-style: italic;
+            padding: 20px;
         }
 
         /* Стили для игры с друзьями */
@@ -1598,7 +1636,7 @@
             }
 
             .modal-body {
-                padding: 15px;
+                padding: 8px;
             }
 
             .setting-item {
@@ -1848,11 +1886,16 @@
 <!-- Модальное окно с результатом игры -->
 <div id="gameResultModal" class="modal" style="display: none;">
     <div class="modal-content">
-        <span class="close" id="closeModal">&times;</span>
-        <div id="gameResultContent">
-            <!-- Содержимое будет заполнено JavaScript -->
+        <div class="modal-header">
+            <h2 id="gameResultTitle">Результат игры</h2>
+            <span class="close" id="closeModal">&times;</span>
         </div>
-        <div class="modal-buttons">
+        <div class="modal-body">
+            <div id="gameResultContent">
+                <!-- Содержимое будет заполнено JavaScript -->
+            </div>
+        </div>
+        <div class="modal-footer">
             <button id="newGameBtn" class="btn btn-primary">Начать заново</button>
         </div>
     </div>
@@ -2451,6 +2494,7 @@
         async showGameResultModal(isWin, attempts, targetWord) {
             const modal = document.getElementById('gameResultModal');
             const content = document.getElementById('gameResultContent');
+            const title = document.getElementById('gameResultTitle');
 
             console.log('Showing game result modal:', {isWin, attempts, targetWord});
             console.log('Game start time:', this.gameStartTime);
@@ -2484,16 +2528,16 @@
             }
 
             if (isWin) {
+                title.textContent = 'Поздравляем!';
                 content.innerHTML = `
-                        <h2 class="success-message">🎉 Поздравляем!</h2>
-                        <p>Вы угадали слово за <strong>${attempts}</strong> попыт${attempts === 1 ? 'ку' : attempts < 5 ? 'ки' : 'ок'}!</p>
+                        <p class="success-message">🎉 Вы угадали слово за <strong>${attempts}</strong> попыт${attempts === 1 ? 'ку' : attempts < 5 ? 'ки' : 'ок'}!</p>
                         <p class="time-info">⏱️ Вам понадобилось: <strong>${timeText}</strong></p>
                         ${rankInfo}
                     `;
             } else {
+                title.textContent = 'Игра окончена';
                 content.innerHTML = `
-                        <h2 class="failure-message">😔 Игра окончена</h2>
-                        <p>К сожалению, вы не угадали слово.</p>
+                        <p class="failure-message">😔 К сожалению, вы не угадали слово.</p>
                         <div class="target-word">Загаданное слово: <strong>${targetWord}</strong></div>
                         <p class="time-info">⏱️ Время игры: <strong>${timeText}</strong></p>
                     `;
@@ -3095,7 +3139,7 @@
 <div id="statsModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>📊 Статистика дня</h2>
+            <h2>Статистика дня</h2>
             <span class="close" onclick="closeStats()">&times;</span>
         </div>
         <div class="modal-body">
