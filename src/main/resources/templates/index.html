@@ -1259,11 +1259,21 @@
 
 
         @media (max-width: 600px) {
+            body {
+                padding: 0;
+                margin: 0;
+                min-height: 100vh;
+                background: #ffffff;
+            }
+            
             .container {
                 padding: 15px;
                 margin: 5px;
                 max-width: 100%;
                 overflow-x: hidden;
+                min-height: calc(100vh - 20px);
+                display: flex;
+                flex-direction: column;
             }
 
             .letter-cell {
@@ -1279,6 +1289,7 @@
                 width: 100%;
                 max-width: 25rem;
                 box-sizing: border-box;
+                background: transparent;
             }
 
             .keyboard-row {
@@ -1387,10 +1398,16 @@
                     gap: 2px;
                 }
 
-                .keyboard {
-                    padding: 10px;
-                    margin: 2px 0 0 0;
-                }
+            .keyboard {
+                padding: 10px;
+                margin: 2px 0 0 0;
+                background: transparent;
+            }
+            
+            /* Убираем лишний отступ снизу */
+            .container {
+                padding-bottom: 0;
+            }
 
                 .key {
                     min-width: 22px;
@@ -1694,6 +1711,7 @@
             this.maxAttempts = 6; // Количество попыток по умолчанию
             this.gameStartTime = null; // Время начала игры
             this.gameEndTime = null; // Время окончания игры
+            this.isSubmitting = false; // Флаг для предотвращения множественных отправок
             this.init();
         }
 
@@ -1774,7 +1792,12 @@
 
                 if (e.key === 'Enter') {
                     e.preventDefault();
-                    this.submitWord();
+                    // Предотвращаем множественные срабатывания
+                    if (this.isSubmitting) return;
+                    this.isSubmitting = true;
+                    this.submitWord().finally(() => {
+                        this.isSubmitting = false;
+                    });
                 } else if (e.key === 'Backspace') {
                     e.preventDefault();
                     this.handleBackspace();
@@ -1807,13 +1830,15 @@
             if (!keyboard) return;
 
             keyboard.addEventListener('click', (e) => {
-                if (e.target.classList.contains('key') && !this.isGameOver) {
+                // Находим ближайший элемент с классом 'key'
+                const keyElement = e.target.closest('.key');
+                if (keyElement && !this.isGameOver) {
                     // Блокируем ввод если открыто модальное окно игры с друзьями
                     const friendModal = document.getElementById('friendModal');
                     if (friendModal && friendModal.style.display === 'block') {
                         return;
                     }
-                    const key = e.target.dataset.key;
+                    const key = keyElement.dataset.key;
 
                     // Запускаем таймер при первом вводе
                     if (!this.gameStartTime) {
@@ -1822,10 +1847,21 @@
                     }
 
                     if (key === 'Enter') {
-                        this.submitWord();
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Предотвращаем множественные срабатывания
+                        if (this.isSubmitting) return;
+                        this.isSubmitting = true;
+                        this.submitWord().finally(() => {
+                            this.isSubmitting = false;
+                        });
                     } else if (key === 'Backspace') {
+                        e.preventDefault();
+                        e.stopPropagation();
                         this.handleBackspace();
                     } else if (this.isValidLetter(key)) {
+                        e.preventDefault();
+                        e.stopPropagation();
                         this.handleLetterInput(key);
                     }
                 }
