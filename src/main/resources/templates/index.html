@@ -1421,20 +1421,18 @@
             body {
                 padding: 0;
                 margin: 0;
-                height: 100vh;
+                min-height: 100vh;
                 background: #ffffff;
-                overflow: hidden;
             }
             
             .container {
-                padding: 10px;
-                margin: 0;
+                padding: 15px;
+                margin: 5px;
                 max-width: 100%;
-                height: 100vh;
-                overflow: hidden;
+                overflow-x: hidden;
+                min-height: calc(100vh - 20px);
                 display: flex;
                 flex-direction: column;
-                box-sizing: border-box;
             }
 
             .letter-cell {
@@ -1444,17 +1442,13 @@
             }
 
             .keyboard {
-                padding: 10px;
-                margin: 0;
+                padding: 15px;
+                margin: 4px 0 0 0;
                 gap: 3px;
                 width: 100%;
                 max-width: 25rem;
                 box-sizing: border-box;
                 background: transparent;
-                flex: 1;
-                display: flex;
-                flex-direction: column;
-                justify-content: flex-end;
             }
 
             .keyboard-row {
@@ -1488,11 +1482,10 @@
                     font-size: 1.3em;
                 }
 
-            .game-board {
-                gap: 3px;
-                margin: 10px 0;
-                flex-shrink: 0;
-            }
+                .game-board {
+                    gap: 3px;
+                    margin-bottom: 12px;
+                }
 
                 .word-row {
                     gap: 3px;
@@ -1529,12 +1522,12 @@
             /* Дополнительная оптимизация для очень маленьких экранов */
             @media (max-width: 375px) {
                 body {
-                    padding: 0;
+                    padding: 5px;
                 }
 
                 .container {
-                    padding: 8px;
-                    margin: 0;
+                    padding: 12px;
+                    margin: 2px;
                 }
 
                 h1 {
@@ -1619,19 +1612,17 @@
 
             /* Мобильные стили для заголовка */
             .header-container {
-                margin-bottom: 5px;
-                flex-shrink: 0;
+                margin-bottom: 15px;
             }
 
             .header-container h1 {
-                font-size: 1.8em;
-                margin: 0;
+                font-size: 2em;
             }
 
             .settings-btn {
-                width: 32px;
-                height: 32px;
-                font-size: 14px;
+                width: 35px;
+                height: 35px;
+                font-size: 16px;
             }
 
             .header-buttons {
