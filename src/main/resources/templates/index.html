@@ -2298,12 +2298,6 @@
                 }
             });
 
-            // Если ни одной буквы не угадано, воспроизводим звук разочарования
-            if (!hasCorrectOrPresent) {
-                setTimeout(() => {
-                    playDisappointmentSound();
-                }, 300); // Небольшая задержка для синхронизации с анимацией
-            }
 
             // Обновляем подсветку клавиатуры
             this.updateKeyboardHighlight(guess);
@@ -2678,43 +2672,6 @@
         `;
     document.head.appendChild(style);
 
-    // Функция для создания звука разочарования
-    function playDisappointmentSound() {
-        // Проверяем, включены ли звуки
-        const soundEnabled = document.getElementById('soundEnabled');
-        if (!soundEnabled || !soundEnabled.checked) {
-            return;
-        }
-
-        try {
-            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
-
-            // Создаем низкий, грустный звук
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-
-            // Настраиваем звук: низкая частота, медленное затухание
-            oscillator.frequency.setValueAtTime(150, audioContext.currentTime); // Низкая частота
-            oscillator.frequency.exponentialRampToValueAtTime(100, audioContext.currentTime + 0.5); // Еще ниже
-
-            // Настройки громкости
-            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.8);
-
-            // Тип волны для более грустного звука
-            oscillator.type = 'sawtooth';
-
-            // Воспроизводим звук
-            oscillator.start(audioContext.currentTime);
-            oscillator.stop(audioContext.currentTime + 0.8);
-
-        } catch (error) {
-            console.log('Не удалось воспроизвести звук:', error);
-        }
-    }
 
     // Функции для работы с модальным окном настроек
     function openSettings() {
@@ -3116,14 +3073,6 @@
         </div>
         <div class="modal-body">
             <div class="settings-content">
-                <div class="setting-item">
-                    <label for="soundEnabled" class="setting-label">
-                        <input type="checkbox" id="soundEnabled" class="setting-checkbox" checked>
-                        <span class="setting-text">Звуки</span>
-                    </label>
-                    <p class="setting-description">Воспроизводить звук разочарования при полном промахе</p>
-                </div>
-
                 <div class="setting-item">
                     <label for="attemptsCount" class="setting-label">
                         <span class="setting-text">Угадаю слово за:</span>
