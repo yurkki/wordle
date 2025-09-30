@@ -1308,6 +1308,184 @@
             margin-right: auto;
         }
 
+        /* Стили для подсказки */
+        .hint-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .hint-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .hint-modal {
+            background: white;
+            border-radius: 1rem;
+            padding: 2rem;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+
+        .hint-overlay.show .hint-modal {
+            transform: scale(1);
+        }
+
+        .hint-icon {
+            width: 4rem;
+            height: 4rem;
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            font-size: 1.5rem;
+        }
+
+        .hint-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #1f2937;
+            margin-bottom: 1rem;
+        }
+
+        .hint-text {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+            line-height: 1.6;
+        }
+
+        .hint-example {
+            background: #f3f4f6;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .hint-example-letters {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .hint-example-letter {
+            width: 2rem;
+            height: 2rem;
+            border: 2px solid #d1d5db;
+            border-radius: 0.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: #6b7280;
+        }
+
+        .hint-example-text {
+            font-size: 0.875rem;
+            color: #6b7280;
+        }
+
+        .hint-buttons {
+            display: flex;
+            justify-content: center;
+        }
+
+        .hint-button {
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .hint-button-primary {
+            background: linear-gradient(135deg, #8b5cf6, #ec4899);
+            color: white;
+        }
+
+        .hint-button-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.4);
+        }
+
+        .hint-button-secondary {
+            background: white;
+            color: #6b7280;
+            border: 1px solid #d1d5db;
+        }
+
+        .hint-button-secondary:hover {
+            background: #f9fafb;
+        }
+
+        .hint-arrow {
+            position: absolute;
+            top: -2.5rem;
+            left: 0;
+            background: #8b5cf6;
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .hint-arrow::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 1rem;
+            width: 0;
+            height: 0;
+            border-left: 0.5rem solid transparent;
+            border-right: 0.5rem solid transparent;
+            border-top: 0.5rem solid #8b5cf6;
+        }
+
+        .game-board.hint-active {
+            position: relative;
+        }
+
+        .letter-cell.hint-highlight {
+            border-color: #8b5cf6 !important;
+            box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2) !important;
+            animation: hint-pulse 2s infinite;
+        }
+
+        @keyframes hint-pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+        }
+
         .keyboard-row {
             display: flex;
             gap: 0.25rem;
@@ -1755,6 +1933,10 @@
 </div>
 
 <div class="game-board" id="gameBoard">
+    <!-- Подсказка для первой ячейки -->
+    <div class="hint-arrow" id="hintArrow" style="display: none;">
+        Начните здесь!
+    </div>
     <!-- Отображаем результаты попыток -->
     <div th:each="guess, iterStat : ${gameState.guesses}" class="word-row" th:data-row="${iterStat.index}">
         <div th:each="letter, letterIter : ${guess.letters}"
@@ -1775,6 +1957,30 @@
              th:data-row="${#lists.size(gameState.guesses) + i}"
              th:data-col="${j}"
              tabindex="0"></div>
+    </div>
+</div>
+
+<!-- Подсказка для новых пользователей -->
+<div class="hint-overlay" id="hintOverlay">
+    <div class="hint-modal">
+        <div class="hint-icon">W</div>
+        <h2 class="hint-title">Добро пожаловать в Вордли!</h2>
+        <p class="hint-text">
+            Начните вводить первое слово из 5 букв, используя игровую клавиатуру.
+        </p>
+        <div class="hint-example">
+            <div class="hint-example-letters">
+                <div class="hint-example-letter">С</div>
+                <div class="hint-example-letter">Л</div>
+                <div class="hint-example-letter">О</div>
+                <div class="hint-example-letter">В</div>
+                <div class="hint-example-letter">О</div>
+            </div>
+            <p class="hint-example-text">Пример: введите слово из 5 букв</p>
+        </div>
+        <div class="hint-buttons">
+            <button class="hint-button hint-button-primary" onclick="hideHint()">Играть</button>
+        </div>
     </div>
 </div>
 
@@ -2646,6 +2852,9 @@
         // Вызываем обработку параметров при загрузке страницы
         handleFriendGameParams();
 
+        // Инициализация подсказки для новых пользователей
+        initHintSystem();
+
         // Сброс подсветки клавиатуры при новой игре
         document.addEventListener('click', function (e) {
             if (e.target && e.target.textContent === 'Новая игра') {
@@ -3182,6 +3391,103 @@
 <script src="https://unpkg.com/lucide@latest"></script>
 <script>
     lucide.createIcons();
+
+    // Функции для работы с подсказкой
+    function initHintSystem() {
+        // Проверяем, является ли это первым визитом пользователя
+        const hasVisited = localStorage.getItem('wordle-has-visited');
+        if (!hasVisited) {
+            // Показываем подсказку через небольшую задержку для лучшего UX
+            setTimeout(() => {
+                showHint();
+            }, 1500);
+        }
+    }
+
+    function showHint() {
+        const hintOverlay = document.getElementById('hintOverlay');
+        const hintArrow = document.getElementById('hintArrow');
+        const gameBoard = document.getElementById('gameBoard');
+        const firstCell = document.querySelector('.letter-cell.input-cell[data-row="0"][data-col="0"]');
+        
+        if (hintOverlay) {
+            hintOverlay.classList.add('show');
+        }
+        
+        if (hintArrow) {
+            hintArrow.style.display = 'flex';
+        }
+        
+        if (gameBoard) {
+            gameBoard.classList.add('hint-active');
+        }
+        
+        if (firstCell) {
+            firstCell.classList.add('hint-highlight');
+        }
+    }
+
+    function hideHint() {
+        const hintOverlay = document.getElementById('hintOverlay');
+        const gameBoard = document.getElementById('gameBoard');
+        const firstCell = document.querySelector('.letter-cell.input-cell[data-row="0"][data-col="0"]');
+        
+        if (hintOverlay) {
+            hintOverlay.classList.remove('show');
+        }
+        
+        // НЕ убираем класс hint-active с gameBoard, чтобы стрелка оставалась позиционированной
+        // if (gameBoard) {
+        //     gameBoard.classList.remove('hint-active');
+        // }
+        
+        if (firstCell) {
+            firstCell.classList.remove('hint-highlight');
+        }
+        
+        // Отмечаем, что пользователь уже посетил приложение
+        localStorage.setItem('wordle-has-visited', 'true');
+    }
+
+    // Добавляем обработчики событий для скрытия подсказки при взаимодействии
+    document.addEventListener('keydown', function(e) {
+        // Проверяем, что нажата буква (не служебные клавиши)
+        const russianLetters = "ЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮЁ";
+        if (russianLetters.includes(e.key.toUpperCase())) {
+            // Скрываем стрелку "Начните здесь!" при вводе буквы
+            hideHintArrow();
+        }
+        
+        if (document.getElementById('hintOverlay').classList.contains('show')) {
+            hideHint();
+        }
+    });
+
+    document.addEventListener('click', function(e) {
+        // Скрываем стрелку "Начните здесь!" при клике на клавишу с буквой
+        if (e.target.classList.contains('key')) {
+            hideHintArrow();
+        }
+        
+        if (e.target.classList.contains('key') && document.getElementById('hintOverlay').classList.contains('show')) {
+            hideHint();
+        }
+    });
+
+    // Функция для скрытия только стрелки "Начните здесь!"
+    function hideHintArrow() {
+        const hintArrow = document.getElementById('hintArrow');
+        const gameBoard = document.getElementById('gameBoard');
+        
+        if (hintArrow && hintArrow.style.display !== 'none') {
+            hintArrow.style.display = 'none';
+        }
+        
+        // Убираем класс hint-active с gameBoard, когда скрываем стрелку
+        if (gameBoard) {
+            gameBoard.classList.remove('hint-active');
+        }
+    }
 </script>
 </body>
 </html>
