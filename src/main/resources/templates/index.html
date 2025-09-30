@@ -3474,13 +3474,59 @@
         }
     });
 
+    // Дополнительные обработчики для мобильных устройств
+    document.addEventListener('touchstart', function(e) {
+        if (e.target.classList.contains('key')) {
+            hideHintArrow();
+        }
+    });
+
+    document.addEventListener('touchend', function(e) {
+        if (e.target.classList.contains('key')) {
+            hideHintArrow();
+        }
+    });
+
+    // Обработчик для изменения содержимого ячеек (на случай если буква вводится программно)
+    function observeCellChanges() {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.type === 'childNodes' || mutation.type === 'characterData') {
+                    const target = mutation.target;
+                    if (target.classList && target.classList.contains('letter-cell') && target.textContent.trim() !== '') {
+                        hideHintArrow();
+                    }
+                }
+            });
+        });
+
+        // Наблюдаем за изменениями в игровом поле
+        const gameBoard = document.getElementById('gameBoard');
+        if (gameBoard) {
+            observer.observe(gameBoard, {
+                childList: true,
+                subtree: true,
+                characterData: true
+            });
+        }
+    }
+
+    // Запускаем наблюдение за изменениями
+    observeCellChanges();
+
+    // Флаг для предотвращения повторного скрытия стрелки
+    let hintArrowHidden = false;
+
     // Функция для скрытия только стрелки "Начните здесь!"
     function hideHintArrow() {
+        if (hintArrowHidden) return; // Если уже скрыта, не делаем ничего
+        
         const hintArrow = document.getElementById('hintArrow');
         const gameBoard = document.getElementById('gameBoard');
         
         if (hintArrow && hintArrow.style.display !== 'none') {
             hintArrow.style.display = 'none';
+            hintArrowHidden = true; // Отмечаем, что стрелка скрыта
         }
         
         // Убираем класс hint-active с gameBoard, когда скрываем стрелку
