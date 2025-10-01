@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
 import javax.sql.DataSource;
+import java.net.URI;
 import java.net.URISyntaxException;
 
 /**
@@ -31,11 +32,18 @@ public class DatabaseConfig {
         // Spring Boot ожидает jdbc:postgresql://user:password@host:port/database
         String jdbcUrl = databaseUrl.replaceFirst("^postgresql://", "jdbc:postgresql://");
         
-        // Создаем DataSource с правильным URL
+        // Парсим URL для извлечения компонентов
+        URI dbUri = new URI(databaseUrl);
+        String username = dbUri.getUserInfo().split(":")[0];
+        String password = dbUri.getUserInfo().split(":")[1];
+        
+        // Создаем DataSource с правильным URL и отдельными параметрами
         org.springframework.boot.jdbc.DataSourceBuilder<?> builder = 
             org.springframework.boot.jdbc.DataSourceBuilder.create();
         
         builder.url(jdbcUrl);
+        builder.username(username);
+        builder.password(password);
         builder.driverClassName("org.postgresql.Driver");
         
         return builder.build();
