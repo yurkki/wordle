@@ -1,11 +1,8 @@
 package org.example.wordle;
 
-import org.example.wordle.service.DictionaryApiService;
-import org.example.wordle.service.WordleService;
+import org.example.wordle.service.*;
 import org.example.wordle.repository.WordsRepository;
 import org.example.wordle.repository.ExtendedWordsRepository;
-import org.example.wordle.service.DailyWordService;
-import org.example.wordle.service.StatsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 
@@ -44,9 +41,11 @@ public class DictionaryApiTest {
         WordsRepository wordsRepository = new WordsRepository();
         ExtendedWordsRepository extendedRepo = new ExtendedWordsRepository();
         DictionaryApiService apiService = new DictionaryApiService(extendedRepo);
-        DailyWordService dailyWordService = new DailyWordService(wordsRepository, apiService);
+        PlayerIdService playerIdService = new PlayerIdService();
+        LocalTimeService localTimeService = new LocalTimeService();
+        DailyWordService dailyWordService = new DailyWordService(wordsRepository, apiService, localTimeService);
         StatsService statsService = new StatsService();
-        WordleService wordleService = new WordleService(wordsRepository, dailyWordService, apiService, statsService);
+        WordleService wordleService = new WordleService(wordsRepository, dailyWordService, apiService, statsService, playerIdService, localTimeService);
         
         // Тестируем формат слов
         assertFalse(wordleService.isValidWord("12345"), "12345 не должно быть валидным");

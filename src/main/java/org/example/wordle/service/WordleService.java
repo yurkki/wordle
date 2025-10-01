@@ -4,6 +4,7 @@ import org.example.wordle.model.*;
 import org.example.wordle.repository.WordsRepository;
 import org.springframework.stereotype.Service;
 
+import jakarta.servlet.http.HttpSession;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -18,46 +19,52 @@ public class WordleService {
     private final DailyWordService dailyWordService;
     private final DictionaryApiService dictionaryApiService;
     private final StatsService statsService;
+    private final PlayerIdService playerIdService;
+    private final LocalTimeService localTimeService;
 
     public WordleService(WordsRepository wordsRepository, 
                         DailyWordService dailyWordService,
                         DictionaryApiService dictionaryApiService,
-                        StatsService statsService) {
+                        StatsService statsService,
+                        PlayerIdService playerIdService,
+                        LocalTimeService localTimeService) {
         this.wordsRepository = wordsRepository;
         this.dailyWordService = dailyWordService;
         this.dictionaryApiService = dictionaryApiService;
         this.statsService = statsService;
+        this.playerIdService = playerIdService;
+        this.localTimeService = localTimeService;
     }
 
     /**
      * Создает новую игру со случайным словом в режиме угадывания
      * Слово проверяется через Яндекс API для валидности
      */
-    public GameState createNewGame() {
+    public GameState createNewGame(HttpSession session) {
         String targetWord = getValidRandomWord();
         GameState gameState = new GameState(targetWord, GameMode.GUESS);
-        gameState.setPlayerId(generatePlayerId());
+        gameState.setPlayerId(playerIdService.getOrCreatePlayerId(session));
         return gameState;
     }
 
     /**
      * Создает новую игру в режиме слова дня
      */
-    public GameState createDailyGame() {
+    public GameState createDailyGame(HttpSession session) {
         String targetWord = dailyWordService.getTodayWord();
         GameState gameState = new GameState(targetWord, GameMode.DAILY);
-        gameState.setPlayerId(generatePlayerId());
+        gameState.setPlayerId(playerIdService.getOrCreatePlayerId(session));
         return gameState;
     }
 
     /**
      * Создает игру в указанном режиме
      */
-    public GameState createGame(GameMode mode) {
+    public GameState createGame(GameMode mode, HttpSession session) {
         if (mode == GameMode.DAILY) {
-            return createDailyGame();
+            return createDailyGame(session);
         } else {
-            return createNewGame();
+            return createNewGame(session);
         }
     }
 
@@ -221,17 +228,20 @@ public class WordleService {
     /**
      * Записывает статистику игры
      */
-    private void recordGameStats(GameState gameState, boolean success) {
+    private boolean recordGameStats(GameState gameState, boolean success) {
         if (gameState.getGameMode() != GameMode.DAILY) {
-            return; // Статистика только для режима дня
+            return false; // Статистика только для режима дня
         }
         
         int attempts = success ? gameState.getGuesses().size() : 0;
         String playerId = gameState.getPlayerId();
         int gameTimeSeconds = gameState.getGameTimeSeconds();
         
-        statsService.recordGameStats(
-            LocalDate.now(),
+        // Используем московское время для даты
+        LocalDate gameDate = localTimeService.getCurrentMoscowDate();
+        
+        return statsService.recordGameStats(
+            gameDate,
             attempts,
             playerId,
             gameState.getTargetWord(),
@@ -239,26 +249,19 @@ public class WordleService {
         );
     }
     
-    /**
-     * Генерирует простой ID игрока (в реальном приложении это может быть сессия или токен)
-     */
-    private String generatePlayerId() {
-        // Простая генерация на основе времени и случайного числа
-        return "player_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 1000);
-    }
     
     /**
      * Получает статистику дня
      */
     public DailyStats getDailyStats() {
-        return statsService.getDailyStats(LocalDate.now());
+        return statsService.getDailyStats(localTimeService.getCurrentMoscowDate());
     }
     
     /**
      * Получает статистику дня с результатом конкретного игрока
      */
     public DailyStats getDailyStatsWithPlayerResult(String playerId) {
-        return statsService.getDailyStatsWithPlayerResult(LocalDate.now(), playerId);
+        return statsService.getDailyStatsWithPlayerResult(localTimeService.getCurrentMoscowDate(), playerId);
     }
     
     /**
@@ -273,6 +276,34 @@ public class WordleService {
      */
     public String getStatsInfo() {
         return statsService.getStatsInfo();
+    }
+    
+    /**
+     * Проверяет, может ли игрок играть сегодня в режиме дня
+     */
+    public boolean canPlayerPlayToday(String playerId) {
+        return statsService.canPlayerPlayToday(playerId);
+    }
+    
+    /**
+     * Получает информацию о том, почему игрок не может играть
+     */
+    public String getPlayRestrictionReason(String playerId) {
+        return statsService.getPlayRestrictionReason(playerId);
+    }
+    
+    /**
+     * Получает статистику игрока за сегодня
+     */
+    public String getTodayPlayerStats(String playerId) {
+        return statsService.getTodayPlayerStats(playerId);
+    }
+    
+    /**
+     * Получает информацию о времени для игры
+     */
+    public String getTimeInfo() {
+        return statsService.getTimeInfo();
     }
     
     /**

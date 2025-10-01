@@ -7,6 +7,7 @@ import org.example.wordle.model.DailyStats;
 import org.example.wordle.service.WordleService;
 import org.example.wordle.service.DailyWordService;
 import org.example.wordle.service.FriendGameService;
+import org.example.wordle.service.PersistentPlayerIdService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -15,6 +16,8 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.http.ResponseEntity;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -33,6 +36,9 @@ public class WordleController {
     
     @Autowired
     private FriendGameService friendGameService;
+
+    @Autowired
+    private PersistentPlayerIdService persistentPlayerIdService;
     
     @Value("${app.domain}")
     private String appDomain;
@@ -41,7 +47,7 @@ public class WordleController {
      * Главная страница игры
      */
     @GetMapping("/")
-    public String index(@RequestParam(required = false) String word_id, Model model, HttpSession session) {
+    public String index(@RequestParam(required = false) String word_id, Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         // Если передан word_id, создаем игру с загаданным словом
@@ -50,7 +56,7 @@ public class WordleController {
             if (friendWord != null) {
                 // Создаем игру в режиме GUESS с загаданным словом
                 gameState = new GameState(friendWord, GameMode.GUESS);
-                gameState.setPlayerId(generatePlayerId());
+                gameState.setPlayerId(persistentPlayerIdService.getOrCreatePlayerId(request, response));
                 gameState.setFriendGame(true); // Устанавливаем флаг игры с другом
                 session.setAttribute("gameState", gameState);
                 
@@ -74,7 +80,10 @@ public class WordleController {
         
         // Обычная логика для главной страницы
         if (gameState == null) {
-            gameState = wordleService.createGame(GameMode.DAILY);
+            // Создаем игру с постоянным ID игрока
+            String playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+            gameState = wordleService.createGame(GameMode.DAILY, session);
+            gameState.setPlayerId(playerId); // Устанавливаем постоянный ID
             session.setAttribute("gameState", gameState);
         }
         
@@ -90,12 +99,14 @@ public class WordleController {
      */
     @PostMapping("/api/guess")
     @ResponseBody
-    public Map<String, Object> makeGuessApi(@RequestParam String word, @RequestParam(required = false) Integer gameTimeSeconds, HttpSession session) {
-        Map<String, Object> response = new HashMap<>();
+    public Map<String, Object> makeGuessApi(@RequestParam String word, @RequestParam(required = false) Integer gameTimeSeconds, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> responseMap = new HashMap<>();
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         if (gameState == null) {
-            gameState = wordleService.createNewGame();
+            String playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+            gameState = wordleService.createNewGame(session);
+            gameState.setPlayerId(playerId);
             session.setAttribute("gameState", gameState);
         }
         
@@ -109,44 +120,46 @@ public class WordleController {
             }
             
             if (word.length() != 5) {
-                response.put("success", false);
-                response.put("error", "Слово должно содержать ровно 5 букв");
+                responseMap.put("success", false);
+                responseMap.put("error", "Слово должно содержать ровно 5 букв");
             } else if (!wordleService.isValidWord(word, gameState)) {
                 // Логируем попытку пользователя ввести невалидное слово
-                response.put("success", false);
-                response.put("error", "Введено неизвестное слово");
+                responseMap.put("success", false);
+                responseMap.put("error", "Введено неизвестное слово");
             } else {
                 // Логируем успешную попытку пользователя
                 WordGuess guess = wordleService.processGuess(word, gameState);
-                response.put("success", true);
-                response.put("gameState", gameState);
-                response.put("lastGuess", guess);
+                responseMap.put("success", true);
+                responseMap.put("gameState", gameState);
+                responseMap.put("lastGuess", guess);
                 System.out.println("Guess processed successfully");
             }
         } catch (IllegalStateException e) {
             System.err.println("IllegalStateException: " + e.getMessage());
             e.printStackTrace();
-            response.put("success", false);
-            response.put("error", e.getMessage());
+            responseMap.put("success", false);
+            responseMap.put("error", e.getMessage());
         } catch (Exception e) {
             System.err.println("Exception in makeGuessApi: " + e.getMessage());
             e.printStackTrace();
-            response.put("success", false);
-            response.put("error", "Произошла ошибка: " + e.getMessage());
+            responseMap.put("success", false);
+            responseMap.put("error", "Произошла ошибка: " + e.getMessage());
         }
         
-        return response;
+        return responseMap;
     }
 
     /**
      * Обработка попытки угадать слово (для формы)
      */
     @PostMapping("/guess")
-    public String makeGuess(@RequestParam String word, HttpSession session, Model model) {
+    public String makeGuess(@RequestParam String word, HttpSession session, Model model, HttpServletRequest request, HttpServletResponse response) {
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         if (gameState == null) {
-            gameState = wordleService.createNewGame();
+            String playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+            gameState = wordleService.createNewGame(session);
+            gameState.setPlayerId(playerId);
             session.setAttribute("gameState", gameState);
         }
         
@@ -174,7 +187,7 @@ public class WordleController {
     public String newGame(HttpSession session) {
         GameState currentGame = (GameState) session.getAttribute("gameState");
         GameMode currentMode = (currentGame != null) ? currentGame.getGameMode() : GameMode.DAILY;
-        GameState newGame = wordleService.createGame(currentMode);
+        GameState newGame = wordleService.createGame(currentMode, session);
         session.setAttribute("gameState", newGame);
         return "redirect:/";
     }
@@ -187,7 +200,7 @@ public class WordleController {
         try {
             System.out.println("Switching mode to: " + mode);
             GameMode gameMode = GameMode.valueOf(mode.toUpperCase());
-            GameState newGame = wordleService.createGame(gameMode);
+            GameState newGame = wordleService.createGame(gameMode, session);
             session.setAttribute("gameState", newGame);
             System.out.println("Mode switched successfully to: " + gameMode);
             return "redirect:/";
@@ -484,12 +497,128 @@ public class WordleController {
             </svg>
             """, domain);
     }
-
+    
     /**
-     * Генерирует уникальный ID игрока
+     * Получает информацию о текущем игроке
      */
-    private String generatePlayerId() {
-        return "player_" + System.currentTimeMillis() + "_" + (int)(Math.random() * 1000);
+    @GetMapping("/api/player/info")
+    @ResponseBody
+    public Map<String, Object> getPlayerInfo(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        String playerId = persistentPlayerIdService.getExistingPlayerId(request);
+        String playerName = persistentPlayerIdService.getPlayerName(request);
+        
+        response.put("playerId", playerId);
+        response.put("playerName", playerName);
+        response.put("hasPlayer", playerId != null);
+        
+        return response;
+    }
+    
+    /**
+     * Устанавливает имя игрока
+     */
+    @PostMapping("/api/player/set-name")
+    @ResponseBody
+    public Map<String, Object> setPlayerName(@RequestParam String name, HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> responseMap = new HashMap<>();
+        
+        if (name == null || name.trim().isEmpty()) {
+            responseMap.put("success", false);
+            responseMap.put("message", "Имя не может быть пустым");
+            return responseMap;
+        }
+        
+        persistentPlayerIdService.setPlayerName(request, response, name);
+        responseMap.put("success", true);
+        responseMap.put("message", "Имя установлено: " + name.trim());
+        responseMap.put("playerName", name.trim());
+        
+        return responseMap;
+    }
+    
+    /**
+     * Сбрасывает ID игрока (для тестирования)
+     */
+    @PostMapping("/api/player/reset")
+    @ResponseBody
+    public Map<String, Object> resetPlayer(HttpServletRequest request, HttpServletResponse response) {
+        persistentPlayerIdService.resetPlayerId(request, response);
+        
+        Map<String, Object> responseMap = new HashMap<>();
+        responseMap.put("success", true);
+        responseMap.put("message", "ID игрока сброшен (сессия + cookie)");
+        
+        return responseMap;
+    }
+    
+    /**
+     * Получает информацию о cookies игрока (для отладки)
+     */
+    @GetMapping("/api/player/cookie-info")
+    @ResponseBody
+    public Map<String, Object> getCookieInfo(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        String cookieInfo = persistentPlayerIdService.getPlayerCookieInfo(request);
+        response.put("cookieInfo", cookieInfo);
+        return response;
+    }
+    
+    /**
+     * Проверяет, может ли игрок играть сегодня в режиме дня
+     */
+    @GetMapping("/api/daily-game/can-play")
+    @ResponseBody
+    public Map<String, Object> canPlayDailyGame(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        String playerId = persistentPlayerIdService.getExistingPlayerId(request);
+        
+        if (playerId == null) {
+            response.put("canPlay", false);
+            response.put("reason", "Игрок не найден");
+            return response;
+        }
+        
+        boolean canPlay = wordleService.canPlayerPlayToday(playerId);
+        response.put("canPlay", canPlay);
+        
+        if (!canPlay) {
+            response.put("reason", wordleService.getPlayRestrictionReason(playerId));
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Получает статистику игрока за сегодня
+     */
+    @GetMapping("/api/daily-game/today-stats")
+    @ResponseBody
+    public Map<String, Object> getTodayPlayerStats(HttpServletRequest request) {
+        Map<String, Object> response = new HashMap<>();
+        String playerId = persistentPlayerIdService.getExistingPlayerId(request);
+        
+        if (playerId == null) {
+            response.put("error", "Игрок не найден");
+            return response;
+        }
+        
+        String stats = wordleService.getTodayPlayerStats(playerId);
+        response.put("stats", stats);
+        
+        return response;
+    }
+    
+    /**
+     * Получает информацию о времени для игры
+     */
+    @GetMapping("/api/daily-game/time-info")
+    @ResponseBody
+    public Map<String, Object> getTimeInfo() {
+        Map<String, Object> response = new HashMap<>();
+        String timeInfo = wordleService.getTimeInfo();
+        response.put("timeInfo", timeInfo);
+        return response;
     }
 
 }

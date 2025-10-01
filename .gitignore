@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+railway.env
+src/main/resources/schema.sql
+src/main/resources/application.properties
+setup-local-db.bat
+setup-local-db.sh

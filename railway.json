@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile.simple"
   },
   "deploy": {
-    "startCommand": "java -jar build/libs/wordle-0.0.1-SNAPSHOT.jar",
+    "startCommand": "java -jar build/libs/wordle-0.0.1-SNAPSHOT.jar --spring.profiles.active=railway",
     "healthcheckPath": "/status",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE",

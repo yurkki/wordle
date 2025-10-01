@@ -15,17 +15,17 @@ public class DailyWordService {
 
     private final WordsRepository wordsRepository;
     private final DictionaryApiService dictionaryApiService;
-    private final MoscowTimeService moscowTimeService;
+    private final LocalTimeService localTimeService;
     
     // Кэш для слова дня - избегаем повторного выбора в течение дня
     private String cachedTodayWord = null;
     private LocalDate cachedDate = null;
 
     @Autowired
-    public DailyWordService(WordsRepository wordsRepository, DictionaryApiService dictionaryApiService, MoscowTimeService moscowTimeService) {
+    public DailyWordService(WordsRepository wordsRepository, DictionaryApiService dictionaryApiService, LocalTimeService localTimeService) {
         this.wordsRepository = wordsRepository;
         this.dictionaryApiService = dictionaryApiService;
-        this.moscowTimeService = moscowTimeService;
+        this.localTimeService = localTimeService;
     }
     
     /**
@@ -101,7 +101,7 @@ public class DailyWordService {
      * Использует кэширование для избежания повторного выбора в течение дня
      */
     public String getTodayWord() {
-        LocalDate today = moscowTimeService.getCurrentMoscowDate();
+        LocalDate today = localTimeService.getCurrentMoscowDate();
         
         // Проверяем кэш - если слово уже выбрано сегодня, возвращаем его
         if (cachedTodayWord != null && cachedDate != null && cachedDate.equals(today)) {
@@ -132,7 +132,7 @@ public class DailyWordService {
      * Получить дату в формате строки для отображения (по московскому времени)
      */
     public String getTodayDateString() {
-        return moscowTimeService.getCurrentMoscowDateString();
+        return localTimeService.getCurrentMoscowDateString();
     }
     
     /**

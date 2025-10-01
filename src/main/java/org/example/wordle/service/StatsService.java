@@ -2,12 +2,14 @@ package org.example.wordle.service;
 
 import org.example.wordle.model.DailyStats;
 import org.example.wordle.model.GameStats;
+import org.example.wordle.model.GameStatsEntity;
+import org.example.wordle.repository.GameStatsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 /**
@@ -16,43 +18,47 @@ import java.util.stream.Collectors;
 @Service
 public class StatsService {
     
-    // Хранилище статистики по дням
-    // Ключ: дата игры, Значение: список статистики игроков
-    private final Map<LocalDate, List<GameStats>> dailyStats = new ConcurrentHashMap<>();
+    @Autowired
+    private GameStatsRepository gameStatsRepository;
     
-    // Кэш для отслеживания, была ли уже выполнена очистка за текущий день
-    private LocalDate lastCleanupDate = null;
+    @Autowired
+    private LocalTimeService localTimeService;
+    
+    @Autowired
+    private DailyGameValidationService dailyGameValidationService;
     
     /**
-     * Записывает статистику завершенной игры
+     * Записывает статистику завершенной игры в базу данных
+     * Проверяет, что игрок еще не играл сегодня в режиме дня
      */
-    public void recordGameStats(LocalDate gameDate, int attempts, String playerId, String targetWord, int gameTimeSeconds) {
-        // Проверяем, нужно ли обнулить статистику при смене дня
-        ensureCurrentDayStats(gameDate);
+    public boolean recordGameStats(LocalDate gameDate, int attempts, String playerId, String targetWord, int gameTimeSeconds) {
+        // Проверяем, что игрок еще не играл сегодня
+        if (!dailyGameValidationService.canPlayerPlayToday(playerId)) {
+            System.out.println("❌ Игрок " + playerId + " уже играл сегодня, статистика не записывается");
+            return false;
+        }
         
-        GameStats stats = new GameStats(
-            gameDate, 
-            attempts, 
-            LocalDateTime.now(), 
-            playerId, 
-            targetWord,
-            gameTimeSeconds
-        );
+        // Проверяем, что время валидно для игры в режиме дня
+        if (!dailyGameValidationService.isValidTimeForDailyGame()) {
+            System.out.println("❌ Время не подходит для игры в режиме дня, статистика не записывается");
+            return false;
+        }
         
-        dailyStats.computeIfAbsent(gameDate, k -> new ArrayList<>()).add(stats);
+        GameStats gameStats = new GameStats(gameDate, attempts, localTimeService.getCurrentMoscowDateTime(), playerId,
+                targetWord, gameTimeSeconds);
         
-        System.out.println("📊 Записана статистика игры: " + stats);
-        System.out.println("📈 Общая статистика за " + gameDate + ": " + dailyStats.get(gameDate).size() + " игроков");
+        GameStatsEntity entity = new GameStatsEntity(gameStats);
+        gameStatsRepository.save(entity);
+        
+        System.out.println("📊 Записана статистика игры в БД: " + gameStats);
+        return true;
     }
     
     /**
-     * Получает статистику дня
+     * Получает статистику дня из базы данных (по московскому времени)
      */
     public DailyStats getDailyStats(LocalDate date) {
-        // Проверяем, нужно ли обнулить статистику при смене дня
-        ensureCurrentDayStats(date);
-        
-        List<GameStats> dayStats = dailyStats.getOrDefault(date, new ArrayList<>());
+        List<GameStatsEntity> dayStats = gameStatsRepository.findByGameDateOrderByAttemptsAscGameTimeSecondsAsc(date);
         
         if (dayStats.isEmpty()) {
             return new DailyStats(date, "", 0, 0, 0.0, new HashMap<>(), new ArrayList<>(), null);
@@ -64,31 +70,22 @@ public class StatsService {
         // Подсчитываем общую статистику
         int totalPlayers = dayStats.size();
         int successfulPlayers = (int) dayStats.stream()
-            .filter(GameStats::isSuccess)
+            .filter(GameStatsEntity::isSuccess)
             .count();
         
         double successRate = totalPlayers > 0 ? (double) successfulPlayers / totalPlayers * 100 : 0.0;
         
         // Распределение по попыткам
         Map<Integer, Integer> attemptsDistribution = dayStats.stream()
-            .filter(GameStats::isSuccess)
+            .filter(GameStatsEntity::isSuccess)
             .collect(Collectors.groupingBy(
-                GameStats::getAttempts,
+                GameStatsEntity::getAttempts,
                 Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact)
             ));
         
-        // Топ игроков (сортировка по попыткам, затем по времени игры)
+        // Топ игроков (уже отсортированы в запросе)
         List<DailyStats.PlayerResult> topPlayers = dayStats.stream()
-            .filter(GameStats::isSuccess)
-            .sorted((a, b) -> {
-                // Сначала по количеству попыток (меньше = лучше)
-                int attemptsCompare = Integer.compare(a.getAttempts(), b.getAttempts());
-                if (attemptsCompare != 0) {
-                    return attemptsCompare;
-                }
-                // Затем по времени игры (меньше = лучше)
-                return Integer.compare(a.getGameTimeSeconds(), b.getGameTimeSeconds());
-            })
+            .filter(GameStatsEntity::isSuccess)
             .map(stats -> new DailyStats.PlayerResult(
                 stats.getPlayerId(),
                 stats.getAttempts(),
@@ -143,67 +140,37 @@ public class StatsService {
      * Получает статистику за последние N дней
      */
     public List<DailyStats> getRecentStats(int days) {
-        LocalDate endDate = LocalDate.now();
+        LocalDate endDate = localTimeService.getCurrentMoscowDate();
         LocalDate startDate = endDate.minusDays(days - 1);
         
-        List<DailyStats> recentStats = new ArrayList<>();
+        List<GameStatsEntity> recentStats = gameStatsRepository.findByGameDateBetween(startDate, endDate);
+        
+        // Группируем по дням
+        Map<LocalDate, List<GameStatsEntity>> statsByDate = recentStats.stream()
+            .collect(Collectors.groupingBy(GameStatsEntity::getGameDate));
+        
+        List<DailyStats> result = new ArrayList<>();
         for (LocalDate date = startDate; !date.isAfter(endDate); date = date.plusDays(1)) {
-            recentStats.add(getDailyStats(date));
+            List<GameStatsEntity> dayStats = statsByDate.getOrDefault(date, new ArrayList<>());
+            result.add(calculateDailyStats(date, dayStats));
         }
         
-        return recentStats;
+        return result;
     }
     
     /**
      * Очищает старую статистику (старше указанного количества дней)
      */
     public void cleanupOldStats(int keepDays) {
-        LocalDate cutoffDate = LocalDate.now().minusDays(keepDays);
-        dailyStats.entrySet().removeIf(entry -> entry.getKey().isBefore(cutoffDate));
-    }
-    
-    /**
-     * Проверяет и обеспечивает корректную статистику для текущего дня
-     * Автоматически обнуляет статистику при смене дня
-     * Использует кэширование для оптимизации производительности
-     */
-    private void ensureCurrentDayStats(LocalDate currentDate) {
-        LocalDate today = LocalDate.now();
-        
-        // Если запрашивается статистика не за сегодня, ничего не делаем
-        if (!currentDate.equals(today)) {
-            return;
-        }
-        
-        // Проверяем кэш - если очистка уже была выполнена сегодня, пропускаем
-        if (lastCleanupDate != null && lastCleanupDate.equals(today)) {
-            return; // Очистка уже была выполнена сегодня
-        }
-        
-        // Проверяем, есть ли статистика за предыдущие дни
-        boolean hasOldStats = dailyStats.keySet().stream()
-            .anyMatch(date -> date.isBefore(today));
-        
-        if (hasOldStats) {
-            System.out.println("🔄 Обнаружена статистика за предыдущие дни, очищаем старые данные...");
-            
-            // Очищаем статистику за предыдущие дни, оставляя только сегодняшнюю
-            dailyStats.entrySet().removeIf(entry -> entry.getKey().isBefore(today));
-            
-            System.out.println("✅ Статистика обнулена для нового дня: " + today);
-            System.out.println("📊 Текущая статистика за " + today + ": " + 
-                dailyStats.getOrDefault(today, new ArrayList<>()).size() + " игроков");
-        }
-        
-        // Обновляем кэш - отмечаем, что очистка была выполнена сегодня
-        lastCleanupDate = today;
+        LocalDate cutoffDate = localTimeService.getCurrentMoscowDate().minusDays(keepDays);
+        gameStatsRepository.deleteByGameDateBefore(cutoffDate);
     }
     
     /**
      * Принудительно обнуляет статистику для указанной даты
      */
     public void resetStatsForDate(LocalDate date) {
-        dailyStats.remove(date);
+        gameStatsRepository.deleteByGameDate(date);
         System.out.println("🗑️ Статистика обнулена для даты: " + date);
     }
     
@@ -214,14 +181,81 @@ public class StatsService {
         StringBuilder info = new StringBuilder();
         info.append("📊 Информация о статистике:\n");
         
-        if (dailyStats.isEmpty()) {
+        long totalRecords = gameStatsRepository.count();
+        if (totalRecords == 0) {
             info.append("   Статистика пуста\n");
         } else {
-            dailyStats.forEach((date, stats) -> {
-                info.append("   ").append(date).append(": ").append(stats.size()).append(" игроков\n");
-            });
+            info.append("   Всего записей в БД: ").append(totalRecords).append("\n");
         }
         
         return info.toString();
+    }
+    
+    /**
+     * Вспомогательный метод для расчета статистики дня
+     */
+    private DailyStats calculateDailyStats(LocalDate date, List<GameStatsEntity> dayStats) {
+        if (dayStats.isEmpty()) {
+            return new DailyStats(date, "", 0, 0, 0.0, new HashMap<>(), new ArrayList<>(), null);
+        }
+        
+        String targetWord = dayStats.get(0).getTargetWord();
+        int totalPlayers = dayStats.size();
+        int successfulPlayers = (int) dayStats.stream().filter(GameStatsEntity::isSuccess).count();
+        double successRate = totalPlayers > 0 ? (double) successfulPlayers / totalPlayers * 100 : 0.0;
+        
+        Map<Integer, Integer> attemptsDistribution = dayStats.stream()
+            .filter(GameStatsEntity::isSuccess)
+            .collect(Collectors.groupingBy(
+                GameStatsEntity::getAttempts,
+                Collectors.collectingAndThen(Collectors.counting(), Math::toIntExact)
+            ));
+        
+        List<DailyStats.PlayerResult> topPlayers = dayStats.stream()
+            .filter(GameStatsEntity::isSuccess)
+            .map(stats -> new DailyStats.PlayerResult(
+                stats.getPlayerId(),
+                stats.getAttempts(),
+                stats.getCompletedAt(),
+                0,
+                true,
+                stats.getGameTimeSeconds()
+            ))
+            .collect(Collectors.toList());
+        
+        for (int i = 0; i < topPlayers.size(); i++) {
+            topPlayers.get(i).setRank(i + 1);
+        }
+        
+        return new DailyStats(date, targetWord, totalPlayers, successfulPlayers, successRate, 
+                            attemptsDistribution, topPlayers, null);
+    }
+    
+    /**
+     * Проверяет, может ли игрок играть сегодня в режиме дня
+     */
+    public boolean canPlayerPlayToday(String playerId) {
+        return dailyGameValidationService.canPlayerPlayToday(playerId);
+    }
+    
+    /**
+     * Получает информацию о том, почему игрок не может играть
+     */
+    public String getPlayRestrictionReason(String playerId) {
+        return dailyGameValidationService.getPlayRestrictionReason(playerId);
+    }
+    
+    /**
+     * Получает статистику игрока за сегодня
+     */
+    public String getTodayPlayerStats(String playerId) {
+        return dailyGameValidationService.getTodayPlayerStats(playerId);
+    }
+    
+    /**
+     * Получает информацию о времени для игры
+     */
+    public String getTimeInfo() {
+        return dailyGameValidationService.getTimeInfo();
     }
 }
