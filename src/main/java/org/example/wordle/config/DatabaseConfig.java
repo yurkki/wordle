@@ -1,5 +1,7 @@
 package org.example.wordle.config;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -18,6 +20,8 @@ import java.net.URISyntaxException;
 @ConditionalOnProperty(name = "spring.profiles.active", havingValue = "railway")
 public class DatabaseConfig {
 
+    private static final Logger logger = LoggerFactory.getLogger(DatabaseConfig.class);
+
     @Value("${DATABASE_URL:}")
     private String databaseUrl;
 
@@ -28,23 +32,41 @@ public class DatabaseConfig {
             throw new IllegalStateException("DATABASE_URL environment variable is not set");
         }
 
+        logger.info("Original DATABASE_URL: {}", databaseUrl);
+
         // Railway предоставляет URL в формате postgresql://user:password@host:port/database
         // Spring Boot ожидает jdbc:postgresql://user:password@host:port/database
         String jdbcUrl = databaseUrl.replaceFirst("^postgresql://", "jdbc:postgresql://");
         
+        logger.info("Converted JDBC URL: {}", jdbcUrl);
+        
         // Парсим URL для извлечения компонентов
         URI dbUri = new URI(databaseUrl);
-        String username = dbUri.getUserInfo().split(":")[0];
-        String password = dbUri.getUserInfo().split(":")[1];
+        String userInfo = dbUri.getUserInfo();
+        String username = "";
+        String password = "";
+        
+        if (userInfo != null && userInfo.contains(":")) {
+            String[] credentials = userInfo.split(":", 2);
+            username = credentials[0];
+            password = credentials[1];
+            logger.info("Parsed username: {}, password: [HIDDEN]", username);
+        }
         
         // Создаем DataSource с правильным URL и отдельными параметрами
         org.springframework.boot.jdbc.DataSourceBuilder<?> builder = 
             org.springframework.boot.jdbc.DataSourceBuilder.create();
         
         builder.url(jdbcUrl);
-        builder.username(username);
-        builder.password(password);
+        if (!username.isEmpty()) {
+            builder.username(username);
+        }
+        if (!password.isEmpty()) {
+            builder.password(password);
+        }
         builder.driverClassName("org.postgresql.Driver");
+        
+        logger.info("DataSource configured with URL: {}", jdbcUrl);
         
         return builder.build();
     }
