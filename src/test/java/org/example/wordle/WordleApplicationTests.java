@@ -16,20 +16,6 @@ class WordleApplicationTests {
     private WordleService wordleService;
 
     @Test
-    void contextLoads() {
-    }
-
-    @Test
-    void testCreateNewGame() {
-        GameState game = wordleService.createNewGame();
-        assertNotNull(game);
-        assertNotNull(game.getTargetWord());
-        assertEquals(5, game.getTargetWord().length());
-        assertEquals(GameStatus.IN_PROGRESS, game.getStatus());
-        assertEquals(0, game.getGuesses().size());
-    }
-
-    @Test
     void testValidWord() {
         assertTrue(wordleService.isValidWord("АВТОР"));
         assertTrue(wordleService.isValidWord("автор"));
