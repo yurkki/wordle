@@ -53,11 +53,15 @@ public class DatabaseConfig {
             logger.info("Parsed username: {}, password: [HIDDEN]", username);
         }
         
-        // Создаем DataSource с правильным URL и отдельными параметрами
+        // Создаем DataSource БЕЗ username/password в URL, только в отдельных параметрах
+        // Это предотвращает проблемы с парсингом URL
+        String cleanJdbcUrl = "jdbc:postgresql://" + dbUri.getHost() + ":" + dbUri.getPort() + dbUri.getPath();
+        logger.info("Clean JDBC URL (without credentials): {}", cleanJdbcUrl);
+        
         org.springframework.boot.jdbc.DataSourceBuilder<?> builder = 
             org.springframework.boot.jdbc.DataSourceBuilder.create();
         
-        builder.url(jdbcUrl);
+        builder.url(cleanJdbcUrl);
         if (!username.isEmpty()) {
             builder.username(username);
         }
@@ -66,7 +70,7 @@ public class DatabaseConfig {
         }
         builder.driverClassName("org.postgresql.Driver");
         
-        logger.info("DataSource configured with URL: {}", jdbcUrl);
+        logger.info("DataSource configured with clean URL: {}", cleanJdbcUrl);
         
         return builder.build();
     }
