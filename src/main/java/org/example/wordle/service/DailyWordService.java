@@ -1,9 +1,9 @@
 package org.example.wordle.service;
 
 import org.example.wordle.repository.WordsRepository;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Random;
 
@@ -15,14 +15,17 @@ public class DailyWordService {
 
     private final WordsRepository wordsRepository;
     private final DictionaryApiService dictionaryApiService;
+    private final MoscowTimeService moscowTimeService;
     
     // Кэш для слова дня - избегаем повторного выбора в течение дня
     private String cachedTodayWord = null;
     private LocalDate cachedDate = null;
 
-    public DailyWordService(WordsRepository wordsRepository, DictionaryApiService dictionaryApiService) {
+    @Autowired
+    public DailyWordService(WordsRepository wordsRepository, DictionaryApiService dictionaryApiService, MoscowTimeService moscowTimeService) {
         this.wordsRepository = wordsRepository;
         this.dictionaryApiService = dictionaryApiService;
+        this.moscowTimeService = moscowTimeService;
     }
     
     /**
@@ -94,27 +97,27 @@ public class DailyWordService {
     }
     
     /**
-     * Получить слово дня для сегодняшней даты
+     * Получить слово дня для сегодняшней даты (по московскому времени)
      * Использует кэширование для избежания повторного выбора в течение дня
      */
     public String getTodayWord() {
-        LocalDate today = LocalDate.now();
+        LocalDate today = moscowTimeService.getCurrentMoscowDate();
         
         // Проверяем кэш - если слово уже выбрано сегодня, возвращаем его
         if (cachedTodayWord != null && cachedDate != null && cachedDate.equals(today)) {
-            System.out.println("📝 Используем кэшированное слово дня: " + cachedTodayWord);
+            System.out.println("📝 Используем кэшированное слово дня: " + cachedTodayWord + " (дата: " + today + ")");
             return cachedTodayWord;
         }
         
         // Выбираем новое слово дня
-        System.out.println("🎯 Выбираем новое слово дня для " + today);
+        System.out.println("🎯 Выбираем новое слово дня для " + today + " (московское время)");
         String todayWord = getWordForDate(today);
         
         // Сохраняем в кэш
         cachedTodayWord = todayWord;
         cachedDate = today;
         
-        System.out.println("✅ Слово дня выбрано и закэшировано: " + todayWord);
+        System.out.println("✅ Слово дня выбрано и закэшировано: " + todayWord + " (дата: " + today + ")");
         return todayWord;
     }
     
@@ -126,10 +129,10 @@ public class DailyWordService {
     }
     
     /**
-     * Получить дату в формате строки для отображения
+     * Получить дату в формате строки для отображения (по московскому времени)
      */
     public String getTodayDateString() {
-        return LocalDate.now().format(DateTimeFormatter.ofPattern("dd MMMM yyyy"));
+        return moscowTimeService.getCurrentMoscowDateString();
     }
     
     /**
