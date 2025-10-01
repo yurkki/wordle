@@ -44,6 +44,33 @@ public class WordleController {
     private String appDomain;
     
     /**
+     * Получает playerId для текущей сессии, создавая его при необходимости.
+     * Оптимизирован для избежания избыточных проверок в рамках одной сессии.
+     * 
+     * Логика:
+     * 1. Сначала проверяем сессию (быстро)
+     * 2. Если нет в сессии, используем PersistentPlayerIdService (куки + создание)
+     * 3. Сохраняем результат в сессию для последующих запросов
+     */
+    private String getPlayerIdForSession(HttpServletRequest request, HttpServletResponse response, HttpSession session) {
+        // Сначала проверяем, есть ли уже playerId в сессии
+        String playerId = (String) session.getAttribute("wordle_player_id");
+        
+        if (playerId != null && !playerId.isEmpty()) {
+            // PlayerId уже есть в сессии, используем его (оптимизация)
+            return playerId;
+        }
+        
+        // PlayerId нет в сессии, получаем или создаем через PersistentPlayerIdService
+        playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+        
+        // Сохраняем в сессию для быстрого доступа в рамках этой сессии
+        session.setAttribute("wordle_player_id", playerId);
+        
+        return playerId;
+    }
+    
+    /**
      * Главная страница игры
      */
     @GetMapping("/")
@@ -56,7 +83,7 @@ public class WordleController {
             if (friendWord != null) {
                 // Создаем игру в режиме GUESS с загаданным словом
                 gameState = new GameState(friendWord, GameMode.GUESS);
-                gameState.setPlayerId(persistentPlayerIdService.getOrCreatePlayerId(request, response));
+                gameState.setPlayerId(getPlayerIdForSession(request, response, session));
                 gameState.setFriendGame(true); // Устанавливаем флаг игры с другом
                 session.setAttribute("gameState", gameState);
                 
@@ -81,10 +108,12 @@ public class WordleController {
         // Обычная логика для главной страницы
         if (gameState == null) {
             // Создаем игру с постоянным ID игрока
-            String playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+            String playerId = getPlayerIdForSession(request, response, session);
             gameState = wordleService.createGame(GameMode.DAILY, session);
-            gameState.setPlayerId(playerId); // Устанавливаем постоянный ID
+            gameState.setPlayerId(playerId);
             session.setAttribute("gameState", gameState);
+            
+            System.out.println("🎮 Создана новая игра для игрока: " + playerId);
         }
         
         model.addAttribute("gameState", gameState);
@@ -104,7 +133,7 @@ public class WordleController {
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         if (gameState == null) {
-            String playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+            String playerId = getPlayerIdForSession(request, response, session);
             gameState = wordleService.createNewGame(session);
             gameState.setPlayerId(playerId);
             session.setAttribute("gameState", gameState);
@@ -157,7 +186,7 @@ public class WordleController {
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         if (gameState == null) {
-            String playerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+            String playerId = getPlayerIdForSession(request, response, session);
             gameState = wordleService.createNewGame(session);
             gameState.setPlayerId(playerId);
             session.setAttribute("gameState", gameState);
@@ -184,11 +213,18 @@ public class WordleController {
      * Начать новую игру
      */
     @PostMapping("/new-game")
-    public String newGame(HttpSession session) {
+    public String newGame(HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         GameState currentGame = (GameState) session.getAttribute("gameState");
         GameMode currentMode = (currentGame != null) ? currentGame.getGameMode() : GameMode.DAILY;
+        
+        // Получаем playerId для сессии
+        String playerId = getPlayerIdForSession(request, response, session);
+        
         GameState newGame = wordleService.createGame(currentMode, session);
+        newGame.setPlayerId(playerId); // Устанавливаем постоянный ID
         session.setAttribute("gameState", newGame);
+        
+        System.out.println("🔄 Создана новая игра для игрока: " + playerId);
         return "redirect:/";
     }
     
@@ -196,13 +232,19 @@ public class WordleController {
      * Переключить режим игры
      */
     @PostMapping("/switch-mode")
-    public String switchMode(@RequestParam String mode, HttpSession session) {
+    public String switchMode(@RequestParam String mode, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
         try {
             System.out.println("Switching mode to: " + mode);
             GameMode gameMode = GameMode.valueOf(mode.toUpperCase());
+            
+            // Получаем playerId для сессии
+            String playerId = getPlayerIdForSession(request, response, session);
+            
             GameState newGame = wordleService.createGame(gameMode, session);
+            newGame.setPlayerId(playerId); // Устанавливаем постоянный ID
             session.setAttribute("gameState", newGame);
-            System.out.println("Mode switched successfully to: " + gameMode);
+            
+            System.out.println("Mode switched successfully to: " + gameMode + " for player: " + playerId);
             return "redirect:/";
         } catch (Exception e) {
             System.err.println("Error switching mode: " + e.getMessage());
@@ -668,6 +710,61 @@ public class WordleController {
         }
         
         return response;
+    }
+    
+    /**
+     * Получает отладочную информацию о игроке (для проверки постоянства)
+     */
+    @GetMapping("/api/debug/player")
+    @ResponseBody
+    public Map<String, Object> getPlayerDebugInfo(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> responseMap = new HashMap<>();
+        
+        // Получаем информацию о игроке
+        String playerId = persistentPlayerIdService.getExistingPlayerId(request);
+        String playerName = persistentPlayerIdService.getPlayerName(request);
+        boolean hasPlayer = persistentPlayerIdService.hasPlayer(request);
+        
+        // Получаем информацию о куки
+        String cookieInfo = persistentPlayerIdService.getPlayerCookieInfo(request);
+        
+        // Получаем информацию о сессии
+        HttpSession session = request.getSession(false);
+        String sessionPlayerId = null;
+        if (session != null) {
+            sessionPlayerId = (String) session.getAttribute("wordle_player_id");
+        }
+        
+        responseMap.put("playerId", playerId);
+        responseMap.put("playerName", playerName);
+        responseMap.put("hasPlayer", hasPlayer);
+        responseMap.put("sessionPlayerId", sessionPlayerId);
+        responseMap.put("cookieInfo", cookieInfo);
+        responseMap.put("sessionExists", session != null);
+        responseMap.put("sessionId", session != null ? session.getId() : "No session");
+        
+        return responseMap;
+    }
+    
+    /**
+     * Принудительно создает нового игрока (для тестирования)
+     */
+    @PostMapping("/api/debug/create-player")
+    @ResponseBody
+    public Map<String, Object> createNewPlayer(HttpServletRequest request, HttpServletResponse response) {
+        Map<String, Object> responseMap = new HashMap<>();
+        
+        // Сбрасываем текущего игрока
+        persistentPlayerIdService.resetPlayerId(request, response);
+        
+        // Создаем нового игрока
+        String newPlayerId = persistentPlayerIdService.getOrCreatePlayerId(request, response);
+        
+        responseMap.put("success", true);
+        responseMap.put("message", "Создан новый игрок");
+        responseMap.put("playerId", newPlayerId);
+        
+        return responseMap;
     }
 
 }

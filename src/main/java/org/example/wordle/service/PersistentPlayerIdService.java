@@ -48,7 +48,7 @@ public class PersistentPlayerIdService {
             // Сохраняем в сессию для быстрого доступа
             HttpSession session = request.getSession();
             session.setAttribute(PLAYER_ID_SESSION_KEY, playerId);
-            System.out.println("🔄 Восстановлен игрок из cookie: " + playerId);
+            System.out.println("✅ Восстановлен игрок из cookie: " + playerId);
             return playerId;
         }
         
@@ -188,11 +188,13 @@ public class PersistentPlayerIdService {
         String requestScheme = getRequestScheme();
         boolean isSecure = "https".equals(requestScheme);
         
-        // Добавляем SameSite атрибут для лучшей совместимости с мобильными браузерами
-        response.addHeader("Set-Cookie", 
-            String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly; %s; SameSite=Lax",
-                PLAYER_ID_COOKIE_NAME, playerId, COOKIE_MAX_AGE, "/", 
-                isSecure ? "Secure" : ""));
+        // Формируем cookie header
+        String cookieValue = String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly; %s; SameSite=Lax",
+            PLAYER_ID_COOKIE_NAME, playerId, COOKIE_MAX_AGE, "/", 
+            isSecure ? "Secure" : "");
+        
+        // Добавляем cookie header
+        response.addHeader("Set-Cookie", cookieValue);
     }
     
     /**
