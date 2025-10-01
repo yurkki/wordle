@@ -1,5 +1,6 @@
 package org.example.wordle.service;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -13,6 +14,9 @@ import java.util.UUID;
  */
 @Service
 public class FriendGameService {
+
+    @Autowired
+    private LocalTimeService localTimeService;
 
     // Хранилище игр с друзьями: word_id -> загаданное слово
     private final Map<String, String> friendGames = new ConcurrentHashMap<>();
@@ -35,7 +39,7 @@ public class FriendGameService {
         
         // Сохраняем слово и метаданные
         friendGames.put(wordId, word.toUpperCase());
-        gameTimestamps.put(wordId, LocalDateTime.now());
+        gameTimestamps.put(wordId, localTimeService.getCurrentMoscowDateTime());
         
         System.out.println("🎯 Сохранено слово для игры с другом: " + word.toUpperCase() + " (ID: " + wordId + ")");
         
@@ -112,7 +116,7 @@ public class FriendGameService {
      * Вызывается периодически для очистки
      */
     public void cleanupOldGames() {
-        LocalDateTime cutoff = LocalDateTime.now().minusDays(7);
+        LocalDateTime cutoff = localTimeService.getCurrentMoscowDateTime().minusDays(7);
         int removedCount = 0;
         
         gameTimestamps.entrySet().removeIf(entry -> {

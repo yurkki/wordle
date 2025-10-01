@@ -240,11 +240,16 @@ public class WordleService {
         // Используем московское время для даты
         LocalDate gameDate = localTimeService.getCurrentMoscowDate();
         
+        // ВАЖНО: Для режима дня всегда используем слово дня, а не targetWord из gameState
+        // Это исправляет проблему, когда игрок играл с другом, но статистика записывается
+        // с неправильным словом
+        String targetWord = dailyWordService.getTodayWord();
+
         return statsService.recordGameStats(
             gameDate,
             attempts,
             playerId,
-            gameState.getTargetWord(),
+            targetWord, // Используем слово дня, а не из gameState
             gameTimeSeconds
         );
     }

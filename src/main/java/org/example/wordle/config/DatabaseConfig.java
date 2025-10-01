@@ -61,7 +61,7 @@ public class DatabaseConfig {
         org.springframework.boot.jdbc.DataSourceBuilder<?> builder = 
             org.springframework.boot.jdbc.DataSourceBuilder.create();
         
-        builder.url(cleanJdbcUrl);
+        builder.url(cleanJdbcUrl + "?serverTimezone=Europe/Moscow");
         if (!username.isEmpty()) {
             builder.username(username);
         }

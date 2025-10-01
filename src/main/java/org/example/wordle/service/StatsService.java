@@ -44,13 +44,19 @@ public class StatsService {
             return false;
         }
         
+        // Дополнительная проверка: убеждаемся, что targetWord не пустое
+        if (targetWord == null || targetWord.trim().isEmpty()) {
+            System.out.println("❌ Target word пустое, статистика не записывается");
+            return false;
+        }
+        
         GameStats gameStats = new GameStats(gameDate, attempts, localTimeService.getCurrentMoscowDateTime(), playerId,
                 targetWord, gameTimeSeconds);
         
         GameStatsEntity entity = new GameStatsEntity(gameStats);
         gameStatsRepository.save(entity);
         
-        System.out.println("📊 Записана статистика игры в БД: " + gameStats);
+        System.out.println("✅ Статистика успешно записана в БД: " + gameStats);
         return true;
     }
     

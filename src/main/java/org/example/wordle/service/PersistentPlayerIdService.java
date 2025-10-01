@@ -23,6 +23,20 @@ public class PersistentPlayerIdService {
     private static final int COOKIE_MAX_AGE = 30 * 24 * 60 * 60;
     
     /**
+     * Определяет схему запроса (http/https)
+     */
+    private String getRequestScheme() {
+        // В продакшене Railway использует HTTPS
+        // В локальной разработке может быть HTTP
+        // Проверяем переменную окружения или заголовки
+        String forwardedProto = System.getenv("RAILWAY_ENVIRONMENT");
+        if (forwardedProto != null) {
+            return "https"; // Railway всегда использует HTTPS
+        }
+        return "http"; // По умолчанию для локальной разработки
+    }
+    
+    /**
      * Получает или создает постоянный ID игрока
      * Сначала проверяет cookie, затем сессию, затем создает новый
      */
@@ -170,44 +184,54 @@ public class PersistentPlayerIdService {
      * Устанавливает cookie с ID игрока
      */
     private void setPlayerIdCookie(HttpServletResponse response, String playerId) {
-        Cookie cookie = new Cookie(PLAYER_ID_COOKIE_NAME, playerId);
-        cookie.setMaxAge(COOKIE_MAX_AGE);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true); // Защита от XSS
-        cookie.setSecure(false); // Для HTTP (в продакшене должно быть true)
-        response.addCookie(cookie);
+        // Определяем Secure флаг на основе схемы запроса
+        String requestScheme = getRequestScheme();
+        boolean isSecure = "https".equals(requestScheme);
+        
+        // Добавляем SameSite атрибут для лучшей совместимости с мобильными браузерами
+        response.addHeader("Set-Cookie", 
+            String.format("%s=%s; Max-Age=%d; Path=%s; HttpOnly; %s; SameSite=Lax",
+                PLAYER_ID_COOKIE_NAME, playerId, COOKIE_MAX_AGE, "/", 
+                isSecure ? "Secure" : ""));
     }
     
     /**
      * Устанавливает cookie с именем игрока
      */
     private void setPlayerNameCookie(HttpServletResponse response, String playerName) {
-        Cookie cookie = new Cookie(PLAYER_NAME_COOKIE_NAME, playerName);
-        cookie.setMaxAge(COOKIE_MAX_AGE);
-        cookie.setPath("/");
-        cookie.setHttpOnly(false); // Доступно для JavaScript
-        cookie.setSecure(false); // Для HTTP (в продакшене должно быть true)
-        response.addCookie(cookie);
+        // Определяем Secure флаг на основе схемы запроса
+        String requestScheme = getRequestScheme();
+        boolean isSecure = "https".equals(requestScheme);
+        
+        // Добавляем SameSite атрибут для лучшей совместимости с мобильными браузерами
+        response.addHeader("Set-Cookie", 
+            String.format("%s=%s; Max-Age=%d; Path=%s; %s; SameSite=Lax",
+                PLAYER_NAME_COOKIE_NAME, playerName, COOKIE_MAX_AGE, "/", 
+                isSecure ? "Secure" : ""));
     }
     
     /**
      * Очищает cookie с ID игрока
      */
     private void clearPlayerIdCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(PLAYER_ID_COOKIE_NAME, "");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        String requestScheme = getRequestScheme();
+        boolean isSecure = "https".equals(requestScheme);
+        
+        response.addHeader("Set-Cookie", 
+            String.format("%s=; Max-Age=0; Path=%s; HttpOnly; %s; SameSite=Lax",
+                PLAYER_ID_COOKIE_NAME, "/", isSecure ? "Secure" : ""));
     }
     
     /**
      * Очищает cookie с именем игрока
      */
     private void clearPlayerNameCookie(HttpServletResponse response) {
-        Cookie cookie = new Cookie(PLAYER_NAME_COOKIE_NAME, "");
-        cookie.setMaxAge(0);
-        cookie.setPath("/");
-        response.addCookie(cookie);
+        String requestScheme = getRequestScheme();
+        boolean isSecure = "https".equals(requestScheme);
+        
+        response.addHeader("Set-Cookie", 
+            String.format("%s=; Max-Age=0; Path=%s; %s; SameSite=Lax",
+                PLAYER_NAME_COOKIE_NAME, "/", isSecure ? "Secure" : ""));
     }
     
     /**

@@ -620,5 +620,54 @@ public class WordleController {
         response.put("timeInfo", timeInfo);
         return response;
     }
+    
+    /**
+     * Получает отладочную информацию о времени (для проверки часового пояса)
+     */
+    @GetMapping("/api/debug/timezone")
+    @ResponseBody
+    public Map<String, Object> getTimezoneDebugInfo() {
+        Map<String, Object> response = new HashMap<>();
+        
+        // Получаем московское время через сервис
+        String moscowTimeInfo = wordleService.getTimeInfo();
+        response.put("moscowTimeInfo", moscowTimeInfo);
+        
+        // Системная информация
+        response.put("systemTimezone", java.time.ZoneId.systemDefault().toString());
+        response.put("defaultTimeZone", java.util.TimeZone.getDefault().getID());
+        
+        // Текущее время в разных форматах
+        response.put("utcTime", java.time.Instant.now().toString());
+        response.put("localTime", java.time.LocalDateTime.now().toString());
+        response.put("moscowTime", java.time.LocalDateTime.now(java.time.ZoneId.of("Europe/Moscow")).toString());
+        
+        return response;
+    }
+    
+    /**
+     * Получает отладочную информацию о статистике (для проверки target word)
+     */
+    @GetMapping("/api/debug/stats")
+    @ResponseBody
+    public Map<String, Object> getStatsDebugInfo() {
+        Map<String, Object> response = new HashMap<>();
+        
+        // Получаем слово дня
+        String todayWord = dailyWordService.getTodayWord();
+        response.put("todayWord", todayWord);
+        
+        // Получаем статистику дня
+        try {
+            DailyStats dailyStats = wordleService.getDailyStats();
+            response.put("dailyStats", dailyStats);
+            response.put("success", true);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
+        }
+        
+        return response;
+    }
 
 }
