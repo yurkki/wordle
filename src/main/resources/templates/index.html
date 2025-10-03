@@ -1986,7 +1986,7 @@
         <div class="hint-icon">W</div>
         <h2 class="hint-title">Добро пожаловать в Вордли!</h2>
         <p class="hint-text">
-            Угадайте слово из 5 букв за минимальное количество попыток. Введите слово и получите первые подсказки!
+            Угадайте слово из 5 букв за минимальное количество попыток. Введите слово и получите свои первые подсказки! Интересные слова, статистика и игра с друзьями!
         </p>
         <div class="hint-example">
             <div class="hint-example-letters">
@@ -2503,30 +2503,35 @@
             // Проверяем, есть ли хотя бы одна угаданная буква
             let hasCorrectOrPresent = false;
 
-            // Применяем результат к каждой ячейке
+            // Применяем результат к каждой ячейке последовательно
             guess.letters.forEach((letter, index) => {
                 if (rowCells[index]) {
                     const cell = rowCells[index];
-                    cell.textContent = letter.letter;
-                    cell.classList.remove('input-cell', 'filled', 'current');
-                    cell.classList.add(letter.state.toLowerCase());
-
-                    // Проверяем, есть ли правильные или присутствующие буквы
-                    if (letter.state === 'CORRECT' || letter.state === 'PRESENT') {
-                        hasCorrectOrPresent = true;
-                    }
-
-                    // Добавляем анимацию появления результата
-                    cell.style.animation = 'letterAppear 0.6s ease';
+                    
+                    // Задержка для каждой буквы (0.2 секунды между буквами)
                     setTimeout(() => {
-                        cell.style.animation = '';
-                    }, 600);
+                        cell.textContent = letter.letter;
+                        cell.classList.remove('input-cell', 'filled', 'current');
+                        cell.classList.add(letter.state.toLowerCase());
+
+                        // Проверяем, есть ли правильные или присутствующие буквы
+                        if (letter.state === 'CORRECT' || letter.state === 'PRESENT') {
+                            hasCorrectOrPresent = true;
+                        }
+
+                        // Добавляем анимацию появления результата
+                        cell.style.animation = 'letterAppear 0.6s ease';
+                        setTimeout(() => {
+                            cell.style.animation = '';
+                        }, 600);
+                    }, index * 200); // 200мс задержка между буквами
                 }
             });
 
-
-            // Обновляем подсветку клавиатуры
-            this.updateKeyboardHighlight(guess);
+            // Обновляем подсветку клавиатуры после завершения всех анимаций
+            setTimeout(() => {
+                this.updateKeyboardHighlight(guess);
+            }, guess.letters.length * 200 + 600); // Ждем завершения всех анимаций
         }
 
         updateKeyboardHighlight(guess) {
@@ -2635,7 +2640,11 @@
                             const attempts = result.gameState.guesses.length;
                             this.gameEndTime = new Date(); // Останавливаем таймер
                             console.log('Game timer stopped (WIN)');
-                            this.showGameResultModal(true, attempts, result.gameState.targetWord);
+                            // Добавляем задержку, чтобы пользователь успел увидеть анимацию открытия слова
+                            // Время анимации: 5 букв × 200мс + 600мс = 1600мс, добавляем еще 400мс для комфорта
+                            setTimeout(() => {
+                                this.showGameResultModal(true, attempts, result.gameState.targetWord);
+                            }, 2000); // 2 секунды задержки
                             this.isGameOver = true;
                         } else if (result.gameState.status === 'LOST' || this.currentRow >= this.maxAttempts - 1) {
                             // Игра окончена - либо проигрыш, либо достигнуто максимальное количество попыток
