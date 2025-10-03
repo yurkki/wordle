@@ -19,8 +19,8 @@ public class PersistentPlayerIdService {
     private static final String PLAYER_ID_SESSION_KEY = "wordle_player_id";
     private static final String PLAYER_NAME_SESSION_KEY = "wordle_player_name";
     
-    // Время жизни cookie в днях (30 дней)
-    private static final int COOKIE_MAX_AGE = 30 * 24 * 60 * 60;
+    // Время жизни cookie в днях (10 лет = практически вечно)
+    private static final int COOKIE_MAX_AGE = 10 * 365 * 24 * 60 * 60;
     
     /**
      * Определяет схему запроса (http/https)
