@@ -27,6 +27,9 @@ public class StatsService {
     @Autowired
     private DailyGameValidationService dailyGameValidationService;
     
+    @Autowired
+    private PlayerStatsService playerStatsService;
+    
     /**
      * Записывает статистику завершенной игры в базу данных
      * Проверяет, что игрок еще не играл сегодня в режиме дня
@@ -55,6 +58,16 @@ public class StatsService {
         
         GameStatsEntity entity = new GameStatsEntity(gameStats);
         gameStatsRepository.save(entity);
+        
+        // Обновляем персональную статистику игрока
+        try {
+            boolean won = attempts <= 6; // Считаем победой, если угадал за 6 попыток или меньше
+            playerStatsService.updatePlayerStats(playerId, won, attempts, gameDate);
+            System.out.println("✅ Персональная статистика обновлена для игрока: " + playerId);
+        } catch (Exception e) {
+            System.err.println("❌ Ошибка обновления персональной статистики: " + e.getMessage());
+            // Не прерываем выполнение, так как основная статистика уже сохранена
+        }
         
         System.out.println("✅ Статистика успешно записана в БД: " + gameStats);
         return true;

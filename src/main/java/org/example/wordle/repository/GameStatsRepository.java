@@ -56,4 +56,9 @@ public interface GameStatsRepository extends JpaRepository<GameStatsEntity, Long
      * Удалить записи за определенную дату
      */
     void deleteByGameDate(LocalDate gameDate);
+    
+    /**
+     * Найти все игры конкретного игрока, отсортированные по дате
+     */
+    List<GameStatsEntity> findByPlayerIdOrderByCompletedAtAsc(String playerId);
 }

@@ -8,6 +8,9 @@ import org.example.wordle.service.WordleService;
 import org.example.wordle.service.DailyWordService;
 import org.example.wordle.service.FriendGameService;
 import org.example.wordle.service.PersistentPlayerIdService;
+import org.example.wordle.service.PlayerStatsService;
+import org.example.wordle.service.PlayerStatsMigrationService;
+import org.example.wordle.model.PlayerStatsEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Controller;
@@ -39,6 +42,12 @@ public class WordleController {
 
     @Autowired
     private PersistentPlayerIdService persistentPlayerIdService;
+    
+    @Autowired
+    private PlayerStatsService playerStatsService;
+    
+    @Autowired
+    private PlayerStatsMigrationService playerStatsMigrationService;
     
     @Value("${app.domain}")
     private String appDomain;
@@ -765,6 +774,100 @@ public class WordleController {
         responseMap.put("playerId", newPlayerId);
         
         return responseMap;
+    }
+    
+    /**
+     * Получает персональную статистику игрока
+     */
+    @GetMapping("/api/stats/player")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> getPlayerStats(HttpServletRequest request) {
+        try {
+            String playerId = persistentPlayerIdService.getExistingPlayerId(request);
+            
+            if (playerId == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Игрок не найден");
+                return ResponseEntity.status(404).body(errorResponse);
+            }
+            
+            PlayerStatsEntity playerStats = playerStatsService.getPlayerStats(playerId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("playerStats", playerStats);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error getting player stats: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Ошибка получения статистики игрока");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Пересчитывает персональную статистику игрока
+     */
+    @PostMapping("/api/stats/player/recalculate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> recalculatePlayerStats(HttpServletRequest request) {
+        try {
+            String playerId = persistentPlayerIdService.getExistingPlayerId(request);
+            
+            if (playerId == null) {
+                Map<String, Object> errorResponse = new HashMap<>();
+                errorResponse.put("success", false);
+                errorResponse.put("message", "Игрок не найден");
+                return ResponseEntity.status(404).body(errorResponse);
+            }
+            
+            playerStatsService.recalculatePlayerStats(playerId);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Статистика пересчитана");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error recalculating player stats: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Ошибка пересчета статистики");
+            return ResponseEntity.status(500).body(errorResponse);
+        }
+    }
+    
+    /**
+     * Запускает миграцию персональной статистики
+     */
+    @PostMapping("/api/stats/migrate")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> migratePlayerStats() {
+        try {
+            if (!playerStatsMigrationService.needsMigration()) {
+                Map<String, Object> response = new HashMap<>();
+                response.put("success", false);
+                response.put("message", "Миграция не нужна - данные уже существуют");
+                return ResponseEntity.ok(response);
+            }
+            
+            playerStatsMigrationService.migratePlayerStats();
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("success", true);
+            response.put("message", "Миграция персональной статистики завершена");
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            System.err.println("Error migrating player stats: " + e.getMessage());
+            Map<String, Object> errorResponse = new HashMap<>();
+            errorResponse.put("success", false);
+            errorResponse.put("message", "Ошибка миграции: " + e.getMessage());
+            return ResponseEntity.status(500).body(errorResponse);
+        }
     }
 
 }

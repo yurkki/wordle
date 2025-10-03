@@ -746,6 +746,24 @@
             padding: 0;
         }
 
+        .personal-stats-section {
+            margin-bottom: 2rem;
+            padding-bottom: 1.5rem;
+            border-bottom: 2px solid #e5e7eb;
+        }
+
+        .daily-stats-section {
+            margin-top: 1.5rem;
+        }
+
+        .stats-section-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
         .stats-summary {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
@@ -1898,7 +1916,7 @@
             <path d="M12 17h.01"></path>
         </svg>
     </button>
-    <button id="statsBtn" onclick="openStats()" title="Статистика дня" class="settings-btn stats-btn">
+    <button id="statsBtn" onclick="openStats()" title="Статистика" class="settings-btn stats-btn">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
              stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
@@ -1986,7 +2004,7 @@
         <div class="hint-icon">W</div>
         <h2 class="hint-title">Добро пожаловать в Вордли!</h2>
         <p class="hint-text">
-            Угадайте слово из 5 букв за минимальное количество попыток. Введите слово и получите свои первые подсказки! Интересные слова, статистика и игра с друзьями!
+            Угадайте слово из 5 букв за минимальное количество попыток. Введите слово и получите первые подсказки!
         </p>
         <div class="hint-example">
             <div class="hint-example-letters">
@@ -2963,7 +2981,7 @@
         const modal = document.getElementById('statsModal');
         modal.style.display = 'block';
         document.body.style.overflow = 'hidden'; // Блокируем прокрутку
-        loadDailyStats();
+        loadPlayerStats();
     }
 
     function closeStats() {
@@ -3172,6 +3190,38 @@
         document.body.style.overflow = 'auto'; // Восстанавливаем прокрутку
     }
 
+    async function loadPlayerStats() {
+        const statsContent = document.getElementById('statsContent');
+        statsContent.innerHTML = '<div class="stats-loading">Загрузка статистики...</div>';
+
+        try {
+            // Загружаем персональную статистику и статистику дня параллельно
+            const [playerResponse, dailyResponse] = await Promise.all([
+                fetch('/api/stats/player'),
+                fetch('/api/stats/daily')
+            ]);
+
+            let playerStats = null;
+            let dailyStats = null;
+
+            if (playerResponse.ok) {
+                const playerData = await playerResponse.json();
+                if (playerData.success) {
+                    playerStats = playerData.playerStats;
+                }
+            }
+
+            if (dailyResponse.ok) {
+                dailyStats = await dailyResponse.json();
+            }
+
+            displayStats(playerStats, dailyStats);
+        } catch (error) {
+            console.error('Ошибка загрузки статистики:', error);
+            statsContent.innerHTML = '<div class="stats-loading">Ошибка загрузки статистики</div>';
+        }
+    }
+
     async function loadDailyStats() {
         const statsContent = document.getElementById('statsContent');
         statsContent.innerHTML = '<div class="stats-loading">Загрузка статистики...</div>';
@@ -3183,91 +3233,151 @@
             }
 
             const stats = await response.json();
-            displayStats(stats);
+            displayStats(null, stats);
         } catch (error) {
             console.error('Ошибка загрузки статистики:', error);
             statsContent.innerHTML = '<div class="stats-loading">Ошибка загрузки статистики</div>';
         }
     }
 
-    function displayStats(stats) {
+    function displayStats(playerStats, dailyStats) {
         const statsContent = document.getElementById('statsContent');
 
-        let html = `
-                <div class="stats-container">
+        let html = '<div class="stats-container">';
+        
+        // Персональная статистика
+        if (playerStats) {
+            html += `
+                <div class="personal-stats-section">
+                    <h3 class="stats-section-title">📊 Персональная статистика</h3>
                     <div class="stats-summary">
                         <div class="stat-card">
-                            <div class="stat-number">${stats.totalPlayers}</div>
+                            <div class="stat-number">${playerStats.totalGames || 0}</div>
+                            <div class="stat-label">Игр сыграно</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${playerStats.winRate || 0}%</div>
+                            <div class="stat-label">Процент побед</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${playerStats.currentStreak || 0}</div>
+                            <div class="stat-label">Текущий стрик</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${playerStats.maxStreak || 0}</div>
+                            <div class="stat-label">Лучший стрик</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-number">${playerStats.averageAttempts || 0}</div>
+                            <div class="stat-label">Среднее кол-во попыток</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+        
+        // Статистика дня
+        if (dailyStats) {
+            html += `
+                <div class="daily-stats-section">
+                    <h3 class="stats-section-title">📈 Статистика дня</h3>
+                    <div class="stats-summary">
+                        <div class="stat-card">
+                            <div class="stat-number">${dailyStats.totalPlayers}</div>
                             <div class="stat-label">Игроков</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">${stats.successfulPlayers}</div>
+                            <div class="stat-number">${dailyStats.successfulPlayers}</div>
                             <div class="stat-label">Угадали</div>
                         </div>
                         <div class="stat-card">
-                            <div class="stat-number">${stats.successRate.toFixed(1)}%</div>
+                            <div class="stat-number">${dailyStats.successRate.toFixed(1)}%</div>
                             <div class="stat-label">Успешность</div>
                         </div>
                     </div>
             `;
 
-        if (stats.attemptsDistribution && Object.keys(stats.attemptsDistribution).length > 0) {
-            html += `
+            // Распределение по попыткам
+            if (dailyStats.attemptsDistribution && Object.keys(dailyStats.attemptsDistribution).length > 0) {
+                html += `
                     <div class="stats-section">
                         <h3>Распределение по попыткам</h3>
                         <div class="attempts-distribution">
                 `;
 
-            for (let i = 1; i <= 6; i++) {
-                const count = stats.attemptsDistribution[i] || 0;
-                const filled = count > 0 ? 'filled' : '';
-                html += `
+                for (let i = 1; i <= 6; i++) {
+                    const count = dailyStats.attemptsDistribution[i] || 0;
+                    const filled = count > 0 ? 'filled' : '';
+                    html += `
                         <div class="attempt-bar ${filled}">
                             <div class="attempt-number">${i}</div>
                             <div class="attempt-count">${count}</div>
                         </div>
                     `;
-            }
+                }
 
-            html += `
+                html += `
                         </div>
                     </div>
                 `;
-        }
+            }
 
-        if (stats.topPlayers && stats.topPlayers.length > 0) {
-            html += `
+            // Лучшие результаты
+            if (dailyStats.topPlayers && dailyStats.topPlayers.length > 0) {
+                html += `
                     <div class="stats-section">
                         <h3>Лучшие результаты</h3>
                         <div class="top-players">
                 `;
 
-            stats.topPlayers.forEach(player => {
-                const timeStr = player.gameTimeSeconds ?
-                    formatGameTime(player.gameTimeSeconds) : '';
+                dailyStats.topPlayers.forEach(player => {
+                    const timeStr = player.gameTimeSeconds ?
+                        formatGameTime(player.gameTimeSeconds) : '';
 
-                html += `
+                    html += `
                         <div class="player-result">
                             <div class="player-rank">#${player.rank}</div>
                             <div class="player-attempts">${player.attempts} попытка</div>
                             <div class="player-time">${timeStr}</div>
                         </div>
                     `;
-            });
+                });
 
-            html += `
+                html += `
                         </div>
                     </div>
                 `;
-        }
+            }
 
-        if (stats.totalPlayers === 0) {
-            html += `
+            // Результат игрока
+            if (dailyStats.playerResult && dailyStats.playerResult.success) {
+                html += `
                     <div class="stats-section">
-                        <h3>Пока нет игроков</h3>
-                        <p>Статистика появится после первых игр в режиме дня</p>
+                        <h3>Ваш результат</h3>
+                        <div class="player-result">
+                            <div class="result-info">
+                                <span class="result-label">Попыток:</span>
+                                <span class="result-value">${dailyStats.playerResult.attempts}</span>
+                            </div>
+                            <div class="result-info">
+                                <span class="result-label">Место в рейтинге:</span>
+                                <span class="result-value">${dailyStats.playerResult.rank}</span>
+                            </div>
+                        </div>
                     </div>
                 `;
+            }
+
+            html += `</div>`;
+        }
+
+        if (!dailyStats || dailyStats.totalPlayers === 0) {
+            html += `
+                <div class="stats-section">
+                    <h3>Пока нет игроков</h3>
+                    <p>Статистика появится после первых игр в режиме дня</p>
+                </div>
+            `;
         }
 
         html += '</div>';
@@ -3337,7 +3447,7 @@
 <div id="statsModal" class="modal">
     <div class="modal-content">
         <div class="modal-header">
-            <h2>Статистика дня</h2>
+            <h2>Статистика</h2>
             <span class="close" onclick="closeStats()">&times;</span>
         </div>
         <div class="modal-body">
