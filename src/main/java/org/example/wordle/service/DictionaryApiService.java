@@ -13,6 +13,8 @@ import java.util.Map;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 
 /**
  * Сервис для работы с Яндекс.Словарь API
@@ -29,6 +31,10 @@ public class DictionaryApiService {
     @Value("${dictionary.api.timeout:5000}")
     private int timeoutMs;
 
+    // Кэширование ошибок API на 1 час
+    private LocalDateTime lastApiErrorTime = null;
+    private static final int API_ERROR_CACHE_HOURS = 1;
+
     public DictionaryApiService(ExtendedWordsRepository extendedWordsRepository) {
         this.restTemplate = new RestTemplate();
         this.extendedWordsRepository = extendedWordsRepository;
@@ -38,6 +44,37 @@ public class DictionaryApiService {
     public void init() {
         System.out.println("DictionaryApiService initialized with API key: " +
                            (yandexApiKey != null && !yandexApiKey.isEmpty() ? "SET" : "NOT SET"));
+    }
+
+    /**
+     * Проверяет, можно ли использовать API (не было ли ошибки в последний час)
+     */
+    private boolean canUseApi() {
+        if (yandexApiKey == null || yandexApiKey.isEmpty()) {
+            return false;
+        }
+        
+        if (lastApiErrorTime == null) {
+            return true;
+        }
+        
+        long hoursSinceLastError = ChronoUnit.HOURS.between(lastApiErrorTime, LocalDateTime.now());
+        boolean canUse = hoursSinceLastError >= API_ERROR_CACHE_HOURS;
+        
+        if (!canUse) {
+            long remainingMinutes = 60 - ChronoUnit.MINUTES.between(lastApiErrorTime, LocalDateTime.now());
+            System.out.println("API заблокирован из-за ошибки. Осталось минут до разблокировки: " + remainingMinutes);
+        }
+        
+        return canUse;
+    }
+
+    /**
+     * Отмечает время ошибки API
+     */
+    private void markApiError() {
+        lastApiErrorTime = LocalDateTime.now();
+        System.out.println("API ошибка зафиксирована. API будет заблокирован на " + API_ERROR_CACHE_HOURS + " час(а)");
     }
 
     /**
@@ -60,13 +97,13 @@ public class DictionaryApiService {
             return true;
         }
 
-        // ВТОРОЙ ЭТАП: Если нет ключа API, используем fallback на локальный словарь
-        if (yandexApiKey == null || yandexApiKey.isEmpty()) {
-            System.out.println("API key not set, using fallback validation for word: " + word);
+        // ВТОРОЙ ЭТАП: Проверяем, можно ли использовать API
+        if (!canUseApi()) {
+            System.out.println("API заблокирован из-за предыдущей ошибки, используем fallback валидацию для слова: " + word);
             boolean isValid = checkWordInLocalDictionary(word);
             if (!isValid) {
-                // Логируем случай, когда слово не найдено в расширенном словаре и API не настроен
-                System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В РАСШИРЕННОМ СЛОВАРЕ И API НЕ НАСТРОЕН: " + word + " (пользователь пытался ввести неизвестное слово)");
+                // Логируем случай, когда слово не найдено в расширенном словаре и API заблокирован
+                System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В РАСШИРЕННОМ СЛОВАРЕ И API ЗАБЛОКИРОВАН: " + word + " (пользователь пытался ввести неизвестное слово)");
             }
             return isValid;
         }
@@ -88,6 +125,8 @@ public class DictionaryApiService {
 
         } catch (Exception e) {
             System.out.println("Яндекс API недоступен: " + e.getMessage());
+            // Отмечаем ошибку API для блокировки на час
+            markApiError();
             // Логируем случай, когда API недоступен, но слово не найдено в расширенном словаре
             System.out.println("⚠️ СЛОВО НЕ НАЙДЕНО В РАСШИРЕННОМ СЛОВАРЕ И API НЕДОСТУПЕН: " + word + " (пользователь пытался ввести неизвестное слово)");
             return false;
@@ -134,10 +173,16 @@ public class DictionaryApiService {
 
         } catch (HttpClientErrorException e) {
             System.out.println("Яндекс API ошибка: " + e.getStatusCode());
+            // Отмечаем ошибку API для блокировки на час
+            markApiError();
         } catch (ResourceAccessException e) {
             System.out.println("Яндекс API недоступен: " + e.getMessage());
+            // Отмечаем ошибку API для блокировки на час
+            markApiError();
         } catch (Exception e) {
             System.out.println("Ошибка Яндекс API: " + e.getMessage());
+            // Отмечаем ошибку API для блокировки на час
+            markApiError();
         }
 
         return false;
@@ -152,7 +197,12 @@ public class DictionaryApiService {
         status.append("Расширенный словарь: ").append(extendedWordsRepository.getWordCount()).append(" слов");
 
         if (yandexApiKey != null && !yandexApiKey.isEmpty()) {
-            status.append(", Яндекс.Словарь API: настроен");
+            if (canUseApi()) {
+                status.append(", Яндекс.Словарь API: доступен");
+            } else {
+                long remainingMinutes = 60 - ChronoUnit.MINUTES.between(lastApiErrorTime, LocalDateTime.now());
+                status.append(", Яндекс.Словарь API: заблокирован (осталось ").append(remainingMinutes).append(" мин)");
+            }
         } else {
             status.append(", Яндекс.Словарь API: не настроен");
         }

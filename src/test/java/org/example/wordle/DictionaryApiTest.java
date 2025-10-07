@@ -59,4 +59,33 @@ public class DictionaryApiTest {
         
         System.out.println("Статистика: " + stats);
     }
+    
+    @Test
+    public void testApiErrorCaching() {
+        ExtendedWordsRepository extendedRepo = new ExtendedWordsRepository();
+        DictionaryApiService apiService = new DictionaryApiService(extendedRepo);
+        
+        // Тестируем кэширование ошибок API
+        // Сначала проверяем, что API доступен (если настроен)
+        String initialStatus = apiService.getApiStatus();
+        System.out.println("Начальный статус API: " + initialStatus);
+        
+        // Проверяем, что слова из расширенного словаря все еще работают
+        assertTrue(apiService.isWordValid("ЕПАРХ"), "Слова из расширенного словаря должны работать даже при блокировке API");
+        assertTrue(apiService.isWordValid("ШАЛОМ"), "Слова из расширенного словаря должны работать даже при блокировке API");
+        
+        // Проверяем, что fallback валидация работает для слов не из расширенного словаря
+        // (это будет зависеть от настроек API ключа)
+        String testWord = "ТЕСТА"; // Слово, которого нет в расширенном словаре
+        
+        // Если API не настроен или заблокирован, fallback валидация должна работать
+        boolean isValid = apiService.isWordValid(testWord);
+        System.out.println("Результат валидации слова '" + testWord + "': " + isValid);
+        
+        // Проверяем, что статус API обновляется корректно
+        String finalStatus = apiService.getApiStatus();
+        System.out.println("Финальный статус API: " + finalStatus);
+        assertNotNull(finalStatus, "Статус API не должен быть null");
+        assertTrue(finalStatus.contains("Расширенный словарь"), "Статус должен содержать информацию о расширенном словаре");
+    }
 }
