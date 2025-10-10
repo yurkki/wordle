@@ -90,17 +90,14 @@ public class PlayerStatsMigrationService {
         
         for (GameStatsEntity game : games) {
             if (game.isSuccess()) {
-                // Проверяем, была ли игра вчера (для непрерывного стрика)
-                if (lastGameDate == null || game.getGameDate().equals(lastGameDate.plusDays(1))) {
-                    currentStreak++;
-                } else {
-                    currentStreak = 1;
-                }
+                // При выигрыше увеличиваем стрик (независимо от пропусков дней)
+                currentStreak++;
                 
                 if (currentStreak > maxStreak) {
                     maxStreak = currentStreak;
                 }
             } else {
+                // При проигрыше обнуляем стрик
                 currentStreak = 0;
             }
             

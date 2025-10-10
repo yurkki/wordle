@@ -70,41 +70,20 @@ public class PlayerStatsService {
     
     /**
      * Обновить стрик игрока
+     * Стрик обнуляется только при проигрыше, а не при пропуске дней
      */
     private void updateStreak(PlayerStatsEntity stats, boolean won, LocalDate gameDate) {
-        LocalDate lastGameDate = stats.getLastGameDate();
-        
-        if (lastGameDate == null) {
-            // Первая игра
-            if (won) {
-                stats.setCurrentStreak(1);
-                stats.setMaxStreak(1);
-            } else {
-                stats.setCurrentStreak(0);
-                stats.setMaxStreak(0);
+        if (won) {
+            // При выигрыше увеличиваем стрик
+            stats.setCurrentStreak(stats.getCurrentStreak() + 1);
+            
+            // Обновляем максимальный стрик
+            if (stats.getCurrentStreak() > stats.getMaxStreak()) {
+                stats.setMaxStreak(stats.getCurrentStreak());
             }
         } else {
-            // Проверяем, была ли игра вчера (для непрерывного стрика)
-            LocalDate yesterday = gameDate.minusDays(1);
-            boolean isConsecutiveDay = lastGameDate.equals(yesterday) || lastGameDate.equals(gameDate);
-            
-            if (won) {
-                if (isConsecutiveDay) {
-                    // Продолжаем стрик
-                    stats.setCurrentStreak(stats.getCurrentStreak() + 1);
-                } else {
-                    // Начинаем новый стрик
-                    stats.setCurrentStreak(1);
-                }
-                
-                // Обновляем максимальный стрик
-                if (stats.getCurrentStreak() > stats.getMaxStreak()) {
-                    stats.setMaxStreak(stats.getCurrentStreak());
-                }
-            } else {
-                // Стрик прерывается
-                stats.setCurrentStreak(0);
-            }
+            // При проигрыше обнуляем стрик
+            stats.setCurrentStreak(0);
         }
     }
     
@@ -170,17 +149,14 @@ public class PlayerStatsService {
             if (game.isSuccess()) {
                 stats.setTotalWins(stats.getTotalWins() + 1);
                 
-                // Обновляем стрик
-                if (lastGameDate == null || game.getGameDate().equals(lastGameDate.plusDays(1))) {
-                    currentStreak++;
-                } else {
-                    currentStreak = 1;
-                }
+                // При выигрыше увеличиваем стрик (независимо от пропусков дней)
+                currentStreak++;
                 
                 if (currentStreak > maxStreak) {
                     maxStreak = currentStreak;
                 }
             } else {
+                // При проигрыше обнуляем стрик
                 currentStreak = 0;
             }
             
