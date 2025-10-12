@@ -101,6 +101,39 @@
             --tracking-normal: 0em;
         }
 
+        /* Темная тема */
+        [data-theme="dark"] {
+            --background: oklch(0.12 0.01 260.03);
+            --foreground: oklch(0.95 0.01 260.03);
+            --card: oklch(0.15 0.01 260.03);
+            --card-foreground: oklch(0.95 0.01 260.03);
+            --popover: oklch(0.15 0.01 260.03);
+            --popover-foreground: oklch(0.95 0.01 260.03);
+            --primary: oklch(0.65 0.20 277.12);
+            --primary-foreground: oklch(0.12 0.01 260.03);
+            --secondary: oklch(0.25 0.01 264.53);
+            --secondary-foreground: oklch(0.85 0.01 259.73);
+            --muted: oklch(0.20 0.01 264.54);
+            --muted-foreground: oklch(0.65 0.01 264.36);
+            --accent: oklch(0.25 0.01 272.79);
+            --accent-foreground: oklch(0.85 0.01 259.73);
+            --destructive: oklch(0.70 0.21 25.33);
+            --border: oklch(0.30 0.01 258.34);
+            --input: oklch(0.30 0.01 258.34);
+            --ring: oklch(0.65 0.20 277.12);
+            --destructive-foreground: oklch(0.12 0.01 260.03);
+            --shadow-color: hsl(0 0% 0%);
+            --shadow-opacity: 0.3;
+            --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.15);
+            --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.15);
+            --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 1px 2px -2px hsl(0 0% 0% / 0.20);
+            --shadow: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 1px 2px -2px hsl(0 0% 0% / 0.20);
+            --shadow-md: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 2px 4px -2px hsl(0 0% 0% / 0.20);
+            --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 4px 6px -2px hsl(0 0% 0% / 0.20);
+            --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 8px 10px -2px hsl(0 0% 0% / 0.20);
+            --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.35);
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -109,7 +142,7 @@
 
         body {
             font-family: var(--font-sans);
-            background: oklch(0.98 0.00 247.86);
+            background: var(--background);
             color: var(--foreground);
             /*min-height: 100vh;*/
             display: flex;
@@ -117,6 +150,7 @@
             align-items: center;
             padding: 1rem;
             letter-spacing: var(--tracking-normal);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .container {
@@ -239,7 +273,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #374151;
+            color: var(--foreground);
             svg{width: 20px; height: 20px}
         }
 
@@ -254,7 +288,7 @@
         .rules-btn {
             order: 1;
             background: transparent;
-            color: #374151;
+            color: var(--foreground);
         }
 
         .settings-btn {
@@ -300,7 +334,7 @@
         }
 
         .modal-content {
-            background-color: white;
+            background-color: var(--card);
             padding: 20px;
             border-radius: 12px;
             box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
@@ -318,7 +352,7 @@
 
 
         .close:hover {
-            color: #000;
+            color: var(--foreground);
         }
 
         .modal-buttons {
@@ -399,9 +433,9 @@
             gap: 0.5rem;
             /*margin-bottom: 2rem;*/
             padding: 1rem;
-            background: #ffffff;
+            background: var(--card);
             border-radius: 0.75rem;
-            border: 1px solid #e2e8f0;
+            border: 1px solid var(--border);
             box-shadow: var(--shadow-sm);
         }
 
@@ -633,10 +667,10 @@
         }
 
         .modal-content {
-            background-color: #ffffff;
+            background-color: var(--card);
             margin: 10% auto;
             padding: 0;
-            border: 1px solid #e5e7eb;
+            border: 1px solid var(--border);
             border-radius: 12px;
             width: 85%;
             max-width: 32rem;
@@ -1029,6 +1063,14 @@
             outline: none;
             border-color: #8b5cf6;
             box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+        }
+
+        .setting-checkbox {
+            width: 18px;
+            height: 18px;
+            margin-right: 12px;
+            cursor: pointer;
+            accent-color: #8b5cf6;
         }
 
         .setting-description {
@@ -2131,6 +2173,10 @@
             this.gameStartTime = null; // Время начала игры
             this.gameEndTime = null; // Время окончания игры
             this.isSubmitting = false; // Флаг для предотвращения множественных отправок
+            this.guessedLetters = new Set(); // Множество угаданных букв (зеленые и желтые)
+            this.useGuessedLetters = this.loadUseGuessedLettersSetting(); // Загружаем настройку из куки
+            this.darkTheme = this.loadDarkThemeSetting(); // Загружаем настройку темной темы из куки
+            this.applyTheme(this.darkTheme); // Применяем тему при загрузке
             this.init();
         }
 
@@ -2168,6 +2214,56 @@
             const timeInSeconds = Math.floor((endTime - this.gameStartTime) / 1000);
             console.log('Game time calculated:', timeInSeconds, 'seconds');
             return timeInSeconds;
+        }
+
+        // Загрузка настройки "Использовать угаданные буквы" из куки
+        loadUseGuessedLettersSetting() {
+            const cookieValue = this.getCookie('useGuessedLetters');
+            return cookieValue === 'true'; // По умолчанию false (выключено)
+        }
+
+        // Сохранение настройки "Использовать угаданные буквы" в куки
+        saveUseGuessedLettersSetting(value) {
+            this.setCookie('useGuessedLetters', value.toString(), 0); // Сессионная кука
+        }
+
+        // Загрузка настройки темной темы из куки
+        loadDarkThemeSetting() {
+            const cookieValue = this.getCookie('darkTheme');
+            return cookieValue === 'true'; // По умолчанию false (светлая тема)
+        }
+
+        // Сохранение настройки темной темы в куки
+        saveDarkThemeSetting(value) {
+            this.setCookie('darkTheme', value.toString(), 365); // Сохраняем на год
+        }
+
+        // Применение темы
+        applyTheme(isDark) {
+            if (isDark) {
+                document.documentElement.setAttribute('data-theme', 'dark');
+            } else {
+                document.documentElement.removeAttribute('data-theme');
+            }
+        }
+
+        // Получение значения куки
+        getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+            return null;
+        }
+
+        // Установка куки
+        setCookie(name, value, days) {
+            let expires = "";
+            if (days) {
+                const date = new Date();
+                date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+                expires = "; expires=" + date.toUTCString();
+            }
+            document.cookie = name + "=" + (value || "") + expires + "; path=/";
         }
 
         updateCurrentRow() {
@@ -2349,6 +2445,27 @@
                     this.maxAttempts = parseInt(e.target.value);
                     console.log('Settings changed, new maxAttempts:', this.maxAttempts);
                     this.updateGameBoard();
+                });
+            }
+
+            const useGuessedLettersToggle = document.getElementById('useGuessedLetters');
+            if (useGuessedLettersToggle) {
+                useGuessedLettersToggle.checked = this.useGuessedLetters;
+                useGuessedLettersToggle.addEventListener('change', (e) => {
+                    this.useGuessedLetters = e.target.checked;
+                    this.saveUseGuessedLettersSetting(this.useGuessedLetters);
+                    console.log('Use guessed letters setting changed:', this.useGuessedLetters);
+                });
+            }
+
+            const darkThemeToggle = document.getElementById('darkTheme');
+            if (darkThemeToggle) {
+                darkThemeToggle.checked = this.darkTheme;
+                darkThemeToggle.addEventListener('change', (e) => {
+                    this.darkTheme = e.target.checked;
+                    this.saveDarkThemeSetting(this.darkTheme);
+                    this.applyTheme(this.darkTheme);
+                    console.log('Dark theme setting changed:', this.darkTheme);
                 });
             }
         }
@@ -2545,6 +2662,8 @@
                         // Проверяем, есть ли правильные или присутствующие буквы
                         if (letter.state === 'CORRECT' || letter.state === 'PRESENT') {
                             hasCorrectOrPresent = true;
+                            // Добавляем букву в множество угаданных букв
+                            this.guessedLetters.add(letter.letter.toLowerCase());
                         }
 
                         // Добавляем анимацию появления результата
@@ -2645,6 +2764,18 @@
             }
 
             const word = this.getCurrentWord();
+            
+            // Проверяем, нужно ли использовать угаданные буквы
+            if (this.useGuessedLetters && this.guessedLetters.size > 0) {
+                const wordLetters = new Set(word.toLowerCase().split(''));
+                const missingLetters = Array.from(this.guessedLetters).filter(letter => !wordLetters.has(letter));
+                
+                if (missingLetters.length > 0) {
+                    this.showMessage('Используйте угаданные буквы', 'error');
+                    return;
+                }
+            }
+            
             this.isGameOver = true;
 
             try {
@@ -2808,6 +2939,9 @@
             // Сбрасываем таймер
             this.gameStartTime = null;
             this.gameEndTime = null;
+            
+            // Сбрасываем угаданные буквы
+            this.guessedLetters.clear();
 
             // Отправляем запрос на новую игру
             const form = document.createElement('form');
@@ -3431,6 +3565,20 @@
         </div>
         <div class="modal-body">
             <div class="settings-content">
+                <div class="setting-item">
+                    <label for="darkTheme" class="setting-label">
+                        <input type="checkbox" id="darkTheme" class="setting-checkbox">
+                        <span class="setting-text">Темная тема</span>
+                    </label>
+                    <p class="setting-description">Переключить интерфейс в темную тему</p>
+                </div>
+                <div class="setting-item">
+                    <label for="useGuessedLetters" class="setting-label">
+                        <input type="checkbox" id="useGuessedLetters" class="setting-checkbox">
+                        <span class="setting-text">Использовать угаданные буквы</span>
+                    </label>
+                    <p class="setting-description">Обязательно использовать буквы, которые были угаданы в предыдущих попытках</p>
+                </div>
                 <div class="setting-item">
                     <label for="attemptsCount" class="setting-label">
                         <span class="setting-text">Угадаю слово за:</span>
