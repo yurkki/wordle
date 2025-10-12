@@ -101,38 +101,6 @@
             --tracking-normal: 0em;
         }
 
-        /* Темная тема */
-        [data-theme="dark"] {
-            --background: oklch(0.12 0.01 260.03);
-            --foreground: oklch(0.95 0.01 260.03);
-            --card: oklch(0.15 0.01 260.03);
-            --card-foreground: oklch(0.95 0.01 260.03);
-            --popover: oklch(0.15 0.01 260.03);
-            --popover-foreground: oklch(0.95 0.01 260.03);
-            --primary: oklch(0.65 0.20 277.12);
-            --primary-foreground: oklch(0.12 0.01 260.03);
-            --secondary: oklch(0.25 0.01 264.53);
-            --secondary-foreground: oklch(0.85 0.01 259.73);
-            --muted: oklch(0.20 0.01 264.54);
-            --muted-foreground: oklch(0.65 0.01 264.36);
-            --accent: oklch(0.25 0.01 272.79);
-            --accent-foreground: oklch(0.85 0.01 259.73);
-            --destructive: oklch(0.70 0.21 25.33);
-            --border: oklch(0.30 0.01 258.34);
-            --input: oklch(0.30 0.01 258.34);
-            --ring: oklch(0.65 0.20 277.12);
-            --destructive-foreground: oklch(0.12 0.01 260.03);
-            --shadow-color: hsl(0 0% 0%);
-            --shadow-opacity: 0.3;
-            --shadow-2xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.15);
-            --shadow-xs: 0px 4px 8px -1px hsl(0 0% 0% / 0.15);
-            --shadow-sm: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 1px 2px -2px hsl(0 0% 0% / 0.20);
-            --shadow: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 1px 2px -2px hsl(0 0% 0% / 0.20);
-            --shadow-md: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 2px 4px -2px hsl(0 0% 0% / 0.20);
-            --shadow-lg: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 4px 6px -2px hsl(0 0% 0% / 0.20);
-            --shadow-xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.20), 0px 8px 10px -2px hsl(0 0% 0% / 0.20);
-            --shadow-2xl: 0px 4px 8px -1px hsl(0 0% 0% / 0.35);
-        }
 
         * {
             margin: 0;
@@ -2175,8 +2143,6 @@
             this.isSubmitting = false; // Флаг для предотвращения множественных отправок
             this.guessedLetters = new Set(); // Множество угаданных букв (зеленые и желтые)
             this.useGuessedLetters = this.loadUseGuessedLettersSetting(); // Загружаем настройку из куки
-            this.darkTheme = this.loadDarkThemeSetting(); // Загружаем настройку темной темы из куки
-            this.applyTheme(this.darkTheme); // Применяем тему при загрузке
             this.init();
         }
 
@@ -2227,25 +2193,6 @@
             this.setCookie('useGuessedLetters', value.toString(), 0); // Сессионная кука
         }
 
-        // Загрузка настройки темной темы из куки
-        loadDarkThemeSetting() {
-            const cookieValue = this.getCookie('darkTheme');
-            return cookieValue === 'true'; // По умолчанию false (светлая тема)
-        }
-
-        // Сохранение настройки темной темы в куки
-        saveDarkThemeSetting(value) {
-            this.setCookie('darkTheme', value.toString(), 365); // Сохраняем на год
-        }
-
-        // Применение темы
-        applyTheme(isDark) {
-            if (isDark) {
-                document.documentElement.setAttribute('data-theme', 'dark');
-            } else {
-                document.documentElement.removeAttribute('data-theme');
-            }
-        }
 
         // Получение значения куки
         getCookie(name) {
@@ -2458,16 +2405,6 @@
                 });
             }
 
-            const darkThemeToggle = document.getElementById('darkTheme');
-            if (darkThemeToggle) {
-                darkThemeToggle.checked = this.darkTheme;
-                darkThemeToggle.addEventListener('change', (e) => {
-                    this.darkTheme = e.target.checked;
-                    this.saveDarkThemeSetting(this.darkTheme);
-                    this.applyTheme(this.darkTheme);
-                    console.log('Dark theme setting changed:', this.darkTheme);
-                });
-            }
         }
 
         updateGameBoard() {
@@ -3566,13 +3503,6 @@
         <div class="modal-body">
             <div class="settings-content">
                 <div class="setting-item">
-                    <label for="darkTheme" class="setting-label">
-                        <input type="checkbox" id="darkTheme" class="setting-checkbox">
-                        <span class="setting-text">Темная тема</span>
-                    </label>
-                    <p class="setting-description">Переключить интерфейс в темную тему</p>
-                </div>
-                <div class="setting-item">
                     <label for="useGuessedLetters" class="setting-label">
                         <input type="checkbox" id="useGuessedLetters" class="setting-checkbox">
                         <span class="setting-text">Использовать угаданные буквы</span>
@@ -3596,7 +3526,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button onclick="closeSettings()" class="btn btn-primary">Готово</button>
+            <button onclick="closeSettings()" class="btn btn-primary">Сохранить</button>
         </div>
     </div>
 </div>
