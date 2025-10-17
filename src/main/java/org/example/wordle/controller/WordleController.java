@@ -100,6 +100,7 @@ public class WordleController {
                 
                 model.addAttribute("gameState", gameState);
                 model.addAttribute("todayDate", dailyWordService.getTodayDateString());
+                model.addAttribute("gameNumber", dailyWordService.getTodayGameNumber());
                 model.addAttribute("playerId", gameState.getPlayerId());
                 model.addAttribute("friendGame", true);
                 model.addAttribute("friendWordId", word_id);
@@ -127,6 +128,7 @@ public class WordleController {
         
         model.addAttribute("gameState", gameState);
         model.addAttribute("todayDate", dailyWordService.getTodayDateString());
+        model.addAttribute("gameNumber", dailyWordService.getTodayGameNumber());
         model.addAttribute("playerId", gameState.getPlayerId());
         model.addAttribute("appDomain", appDomain);
         return "index";

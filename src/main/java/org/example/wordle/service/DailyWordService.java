@@ -155,4 +155,21 @@ public class DailyWordService {
             return "Кэш пуст";
         }
     }
+    
+    /**
+     * Получить номер игры для указанной даты
+     * Номер игры вычисляется как количество дней с 1 октября 2024 года
+     */
+    public int getGameNumberForDate(LocalDate date) {
+        LocalDate startDate = LocalDate.of(2025, 10, 1);
+        return (int) java.time.temporal.ChronoUnit.DAYS.between(startDate, date) + 1;
+    }
+    
+    /**
+     * Получить номер игры для сегодняшней даты (по московскому времени)
+     */
+    public int getTodayGameNumber() {
+        LocalDate today = localTimeService.getCurrentMoscowDate();
+        return getGameNumberForDate(today);
+    }
 }
