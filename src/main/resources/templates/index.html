@@ -1689,8 +1689,8 @@
             }
 
             .keyboard {
-                padding: 15px;
-                margin: 4px 0 0 0;
+                padding: 10px;
+                margin: 2px 0 0 0;
                 gap: 3px;
                 width: 100%;
                 max-width: 25rem;
@@ -1708,8 +1708,8 @@
                 padding: 5px 7px;
                 min-width: 28px;
                 width: 28px;
-                height: 38px;
-                font-size: 9px;
+                height: 49px;
+                font-size: 12px;
                 flex: 1;
                 max-width: 35px;
             }
@@ -1717,7 +1717,7 @@
             .key.special {
                 min-width: 35px;
                 width: 35px;
-                font-size: 8px;
+                font-size: 10px;
                 flex: 0 0 auto;
             }
 
@@ -1731,7 +1731,7 @@
 
                 .game-board {
                     gap: 3px;
-                    margin-bottom: 12px;
+                    margin-bottom: 8px;
                 }
 
                 .word-row {
@@ -1739,8 +1739,8 @@
                 }
 
                 .keyboard {
-                    padding: 12px;
-                    margin: 3px 0 0 0;
+                    padding: 8px;
+                    margin: 1px 0 0 0;
                     width: 100%;
                     max-width: 25rem;
                     box-sizing: border-box;
@@ -1754,15 +1754,15 @@
                 .key {
                     min-width: 24px;
                     width: 24px;
-                    height: 32px;
-                    font-size: 7px;
+                    height: 42px;
+                    font-size: 9px;
                     padding: 3px 4px;
                 }
 
                 .key.special {
                     min-width: 28px;
                     width: 28px;
-                    font-size: 6px;
+                    font-size: 8px;
                 }
             }
 
@@ -1796,7 +1796,7 @@
 
                 .game-board {
                     gap: 2px;
-                    margin-bottom: 10px;
+                    margin-bottom: 6px;
                 }
 
                 .word-row {
@@ -1804,8 +1804,8 @@
                 }
 
             .keyboard {
-                padding: 10px;
-                margin: 2px 0 0 0;
+                padding: 6px;
+                margin: 1px 0 0 0;
                 background: transparent;
             }
             
@@ -1817,15 +1817,15 @@
                 .key {
                     min-width: 22px;
                     width: 22px;
-                    height: 28px;
-                    font-size: 6px;
+                    height: 36px;
+                    font-size: 8px;
                     padding: 2px 3px;
                 }
 
                 .key.special {
                     min-width: 26px;
                     width: 26px;
-                    font-size: 5px;
+                    font-size: 7px;
                 }
             }
 
@@ -1944,7 +1944,7 @@
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
         </svg>
     </button>
-    <h1>WORDLE <span th:if="${gameState.gameMode == T(org.example.wordle.model.GameMode).DAILY}" th:text="'#' + ${gameNumber}"></span></h1>
+    <h1>WORDLE <span th:text="'#' + ${gameNumber}"></span></h1>
     <div class="header-buttons">
         <button id="friendBtn" onclick="openFriendGame()" title="Сыграй с другом" class="settings-btn friend-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
