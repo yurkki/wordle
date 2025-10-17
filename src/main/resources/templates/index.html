@@ -157,6 +157,19 @@
             font-size: 0.875rem;
         }
 
+        /* Мобильные стили для слайдера */
+        @media (max-width: 600px) {
+            .game-info {
+                margin-bottom: 3px;
+            }
+        }
+
+        @media (max-width: 375px) {
+            .game-info {
+                margin-bottom: 2px;
+            }
+        }
+
         .status {
             font-weight: 600;
             font-size: 1.125rem;
@@ -1731,7 +1744,7 @@
 
                 .game-board {
                     gap: 3px;
-                    margin-bottom: 2px;
+                    margin-bottom: 3px;
                 }
 
                 .word-row {
@@ -1783,9 +1796,6 @@
                     white-space: nowrap;
                 }
 
-                .game-info {
-                    margin-bottom: 2px;
-                }
 
 
                 .letter-cell {
@@ -1796,7 +1806,7 @@
 
                 .game-board {
                     gap: 2px;
-                    margin-bottom: 1px;
+                    margin-bottom: 2px;
                 }
 
                 .word-row {
