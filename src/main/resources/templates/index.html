@@ -150,6 +150,16 @@
             text-transform: uppercase;
         }
 
+        .wordle-title {
+            /* Слово WORDLE - статичное, никогда не изменяется */
+            display: inline;
+        }
+
+        .game-number {
+            /* Номер игры - может скрываться/показываться */
+            display: inline;
+        }
+
         .game-info {
             text-align: center;
             margin-bottom: 0.75rem;
@@ -1722,7 +1732,7 @@
                 min-width: 28px;
                 width: 28px;
                 height: 49px;
-                font-size: 12px;
+                font-size: 14.4px; /* Увеличено на 20% с 12px */
                 flex: 1;
                 max-width: 35px;
             }
@@ -1730,7 +1740,7 @@
             .key.special {
                 min-width: 35px;
                 width: 35px;
-                font-size: 10px;
+                font-size: 12px; /* Увеличено на 20% с 10px */
                 flex: 0 0 auto;
             }
 
@@ -1768,14 +1778,14 @@
                     min-width: 24px;
                     width: 24px;
                     height: 42px;
-                    font-size: 9px;
+                    font-size: 10.8px; /* Увеличено на 20% с 9px */
                     padding: 3px 4px;
                 }
 
                 .key.special {
                     min-width: 28px;
                     width: 28px;
-                    font-size: 8px;
+                    font-size: 9.6px; /* Увеличено на 20% с 8px */
                 }
             }
 
@@ -1828,14 +1838,14 @@
                     min-width: 22px;
                     width: 22px;
                     height: 36px;
-                    font-size: 8px;
+                    font-size: 9.6px; /* Увеличено на 20% с 8px */
                     padding: 2px 3px;
                 }
 
                 .key.special {
                     min-width: 26px;
                     width: 26px;
-                    font-size: 7px;
+                    font-size: 8.4px; /* Увеличено на 20% с 7px */
                 }
             }
 
@@ -1932,6 +1942,42 @@
                 font-size: 0.85em;
             }
         }
+
+        /* Стили для индикатора загрузки при переключении режимов */
+        .loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-indicator .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--muted);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        .loading-indicator span {
+            color: var(--foreground);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -1954,7 +2000,7 @@
             <path d="M12 2L15.09 8.26L22 9.27L17 14.14L18.18 21.02L12 17.77L5.82 21.02L7 14.14L2 9.27L8.91 8.26L12 2Z"/>
         </svg>
     </button>
-    <h1>WORDLE<span th:text="'#' + ${gameNumber}"></span></h1>
+    <h1><span class="wordle-title">WORDLE</span><span class="game-number" th:text="'#' + ${gameNumber}"></span></h1>
     <div class="header-buttons">
         <button id="friendBtn" onclick="openFriendGame()" title="Сыграй с другом" class="settings-btn friend-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -2155,7 +2201,45 @@
             this.isSubmitting = false; // Флаг для предотвращения множественных отправок
             this.guessedLetters = new Set(); // Множество угаданных букв (зеленые и желтые)
             this.useGuessedLetters = this.loadUseGuessedLettersSetting(); // Загружаем настройку из куки
+            
+            // Кэшируем элементы заголовка для предотвращения перезагрузки
+            this.cacheHeaderElements();
+            
             this.init();
+        }
+
+        cacheHeaderElements() {
+            // Кэшируем все элементы заголовка для предотвращения их перезагрузки
+            this.headerElements = {
+                title: document.querySelector('h1'),
+                wordleTitle: document.querySelector('.wordle-title'), // Слово WORDLE - никогда не обновляется
+                gameNumberSpan: document.querySelector('.game-number'), // Номер игры - обновляется
+                rulesBtn: document.getElementById('rulesBtn'),
+                statsBtn: document.getElementById('statsBtn'),
+                friendBtn: document.getElementById('friendBtn'),
+                settingsBtn: document.getElementById('settingsBtn'),
+                modeSelector: document.querySelector('.mode-selector'),
+                modeDaily: document.getElementById('mode-daily'),
+                modeGuess: document.getElementById('mode-guess'),
+                dailyLabel: document.querySelector('label[for="mode-daily"]'),
+                guessLabel: document.querySelector('label[for="mode-guess"]')
+            };
+            
+            // Убеждаемся, что слово WORDLE правильно установлено
+            this.ensureWordleTitle();
+            
+            console.log('Header elements cached:', this.headerElements);
+        }
+
+        ensureWordleTitle() {
+            // Убеждаемся, что слово WORDLE правильно установлено и никогда не изменяется
+            if (this.headerElements && this.headerElements.wordleTitle) {
+                if (this.headerElements.wordleTitle.textContent !== 'WORDLE') {
+                    console.log('Setting WORDLE title to correct value');
+                    this.headerElements.wordleTitle.textContent = 'WORDLE';
+                }
+                console.log('WORDLE title is stable:', this.headerElements.wordleTitle.textContent);
+            }
         }
 
         init() {
@@ -2343,18 +2427,27 @@
         }
 
         setupModeListeners() {
-            const modeInputs = document.querySelectorAll('input[name="gameMode"]');
+            // Используем кэшированные элементы вместо поиска в DOM
+            const modeInputs = this.headerElements ? [
+                this.headerElements.modeDaily,
+                this.headerElements.modeGuess
+            ].filter(input => input) : document.querySelectorAll('input[name="gameMode"]');
 
             console.log('Setting up mode listeners, found inputs:', modeInputs.length);
 
-
             // Инициализируем состояние переключателя
-            const currentMode = document.querySelector('input[name="gameMode"]:checked');
+            const currentMode = this.headerElements ? 
+                (this.headerElements.modeDaily?.checked ? this.headerElements.modeDaily : 
+                 this.headerElements.modeGuess?.checked ? this.headerElements.modeGuess : null) :
+                document.querySelector('input[name="gameMode"]:checked');
+                
             if (currentMode) {
                 console.log('Current mode:', currentMode.value);
             }
 
             modeInputs.forEach((input, index) => {
+                if (!input) return;
+                
                 console.log(`Setting up listener for input ${index}:`, input.value, input.checked);
 
                 input.addEventListener('change', (e) => {
@@ -2465,12 +2558,76 @@
         }
 
         switchMode(mode) {
+            console.log('=== Frontend Switch Mode ===');
             console.log('Switching to mode:', mode);
+            console.log('Current URL:', window.location.href);
 
-            // Обновляем игровое поле при переключении режима
-            this.updateGameBoard();
+            // Показываем индикатор загрузки
+            this.showLoadingIndicator();
 
-            // Отправляем запрос на сервер для переключения режима
+            // Отправляем API запрос для переключения режима
+            const requestBody = `mode=${encodeURIComponent(mode)}`;
+            console.log('Request body:', requestBody);
+            
+            fetch('/api/switch-mode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: requestBody
+            })
+            .then(response => {
+                console.log('Response received:', response);
+                console.log('Response status:', response.status);
+                console.log('Response headers:', response.headers);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response.json();
+            })
+            .then(data => {
+                console.log('Response data:', data);
+                
+                if (data.success) {
+                    console.log('Mode switched successfully:', data.mode);
+                    
+                    // Обновляем только необходимые элементы без перезагрузки страницы
+                    this.updateModeWithoutReload(data);
+                } else {
+                    console.error('Server error switching mode:', data.error);
+                    this.showMessage('Ошибка при переключении режима: ' + data.error, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('=== Network Error Details ===');
+                console.error('Error type:', error.constructor.name);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
+                console.error('=== End Error Details ===');
+                
+                // Пробуем fallback на старый метод
+                console.log('Trying fallback to old switch mode method...');
+                this.switchModeFallback(mode);
+            })
+            .finally(() => {
+                this.hideLoadingIndicator();
+                console.log('=== Frontend Switch Mode Complete ===');
+            });
+        }
+
+        switchModeFallback(mode) {
+            console.log('Using fallback method for mode switch:', mode);
+            
+            // Скрываем индикатор загрузки
+            this.hideLoadingIndicator();
+            
+            // Показываем сообщение пользователю
+            this.showMessage('Переключение на старый метод...', 'info');
+            
+            // Используем старый метод с перезагрузкой страницы
             const form = document.createElement('form');
             form.method = 'POST';
             form.action = '/switch-mode';
@@ -2483,10 +2640,133 @@
             form.appendChild(input);
             document.body.appendChild(form);
 
-            console.log('Submitting form with action:', form.action);
-            console.log('Form data:', new FormData(form));
-
+            console.log('Submitting fallback form with action:', form.action);
             form.submit();
+        }
+
+        updateModeWithoutReload(data) {
+            // Обновляем состояние игры
+            this.gameState = data.gameState;
+            
+            // Сбрасываем состояние игры
+            this.currentRow = 0;
+            this.currentCol = 0;
+            this.isGameOver = false;
+            this.gameStartTime = null;
+            this.gameEndTime = null;
+            this.guessedLetters.clear();
+            
+            // Очищаем игровое поле
+            this.clearGameBoard();
+            
+            // Сбрасываем подсветку клавиатуры
+            this.resetKeyboardHighlight();
+            
+            // Обновляем заголовок и информацию о дне (только для режима дня)
+            if (data.mode === 'DAILY') {
+                this.updateDailyInfo(data.todayDate, data.gameNumber);
+                this.updateHeaderTitle(data.gameNumber);
+            } else {
+                // Для режима угадывания убираем номер игры из заголовка
+                this.updateHeaderTitle(null);
+            }
+            
+            // Обновляем состояние переключателя режимов
+            this.updateModeSelector(data.mode);
+            
+            // Обновляем статус игры
+            this.updateGameStatus();
+            
+            // Фокусируемся на первой ячейке
+            this.focusFirstAvailableCell();
+            
+            console.log('Mode updated without reload:', data.mode);
+        }
+
+        showLoadingIndicator() {
+            // Создаем индикатор загрузки, если его нет
+            let loader = document.getElementById('modeSwitchLoader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'modeSwitchLoader';
+                loader.className = 'loading-indicator';
+                loader.innerHTML = '<div class="spinner"></div><span>Переключение режима...</span>';
+                document.body.appendChild(loader);
+            }
+            loader.style.display = 'flex';
+        }
+
+        hideLoadingIndicator() {
+            const loader = document.getElementById('modeSwitchLoader');
+            if (loader) {
+                loader.style.display = 'none';
+            }
+        }
+
+        updateHeaderTitle(gameNumber) {
+            // Обновляем только номер игры, слово WORDLE остается неизменным
+            if (this.headerElements && this.headerElements.gameNumberSpan) {
+                // Проверяем, что слово WORDLE не изменилось
+                const wordleText = this.headerElements.wordleTitle ? this.headerElements.wordleTitle.textContent : '';
+                if (wordleText !== 'WORDLE') {
+                    console.warn('WORDLE title was changed! Restoring...');
+                    if (this.headerElements.wordleTitle) {
+                        this.headerElements.wordleTitle.textContent = 'WORDLE';
+                    }
+                }
+                
+                if (gameNumber) {
+                    this.headerElements.gameNumberSpan.textContent = `#${gameNumber}`;
+                    this.headerElements.gameNumberSpan.style.display = 'inline';
+                } else {
+                    this.headerElements.gameNumberSpan.style.display = 'none';
+                }
+                console.log('Game number updated:', gameNumber ? `#${gameNumber}` : 'hidden');
+                console.log('WORDLE title remains unchanged:', wordleText);
+            }
+        }
+
+        updateModeSelector(mode) {
+            // Обновляем состояние переключателя режимов без перезагрузки
+            if (this.headerElements) {
+                if (mode === 'DAILY' && this.headerElements.modeDaily) {
+                    this.headerElements.modeDaily.checked = true;
+                    this.headerElements.modeGuess.checked = false;
+                } else if (mode === 'GUESS' && this.headerElements.modeGuess) {
+                    this.headerElements.modeGuess.checked = true;
+                    this.headerElements.modeDaily.checked = false;
+                }
+                console.log('Mode selector updated to:', mode);
+            }
+        }
+
+        updateDailyInfo(todayDate, gameNumber) {
+            // Обновляем информацию о дне в заголовке
+            const dateElement = document.querySelector('.daily-date');
+            const gameNumberElement = document.querySelector('.daily-game-number');
+            
+            if (dateElement) {
+                dateElement.textContent = todayDate;
+            }
+            if (gameNumberElement) {
+                gameNumberElement.textContent = `Игра #${gameNumber}`;
+            }
+        }
+
+        updateGameStatus() {
+            // Обновляем статус игры
+            const statusElement = document.querySelector('.status');
+            if (statusElement && this.gameState) {
+                statusElement.className = 'status ' + this.gameState.status.toLowerCase();
+                
+                if (this.gameState.status === 'WON') {
+                    statusElement.textContent = 'Поздравляем! Вы выиграли!';
+                } else if (this.gameState.status === 'LOST') {
+                    statusElement.textContent = 'Игра окончена. Загаданное слово: ' + this.gameState.targetWord;
+                } else {
+                    statusElement.textContent = '';
+                }
+            }
         }
 
         isValidLetter(key) {
@@ -2932,6 +3212,8 @@
 
             if (type === 'error') {
                 message.style.background = '#f44336';
+            } else if (type === 'info') {
+                message.style.background = '#2196F3';
             } else {
                 message.style.background = '#4CAF50';
             }
