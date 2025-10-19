@@ -2155,7 +2155,44 @@
             this.isSubmitting = false; // Флаг для предотвращения множественных отправок
             this.guessedLetters = new Set(); // Множество угаданных букв (зеленые и желтые)
             this.useGuessedLetters = this.loadUseGuessedLettersSetting(); // Загружаем настройку из куки
+            
+            // Мемоизация игрового поля и клавиатуры
+            this.memoizeGameElements();
+            
             this.init();
+        }
+
+        memoizeGameElements() {
+            // Кэшируем все элементы игрового поля и клавиатуры для мемоизации
+            this.memoizedElements = {
+                // Игровое поле
+                gameBoard: this.gameBoard,
+                allRows: document.querySelectorAll('.word-row'),
+                allCells: document.querySelectorAll('.letter-cell'),
+                inputCells: document.querySelectorAll('.input-cell'),
+                
+                // Клавиатура
+                keyboard: document.getElementById('virtualKeyboard'),
+                allKeys: document.querySelectorAll('.key'),
+                specialKeys: document.querySelectorAll('.key.special'),
+                
+                // Строки клавиатуры
+                keyboardRows: document.querySelectorAll('.keyboard-row')
+            };
+            
+            console.log('Game elements memoized:', this.memoizedElements);
+        }
+
+        refreshMemoizedElements() {
+            // Обновляем мемоизированные элементы, если DOM изменился
+            this.memoizedElements.allRows = document.querySelectorAll('.word-row');
+            this.memoizedElements.allCells = document.querySelectorAll('.letter-cell');
+            this.memoizedElements.inputCells = document.querySelectorAll('.input-cell');
+            this.memoizedElements.allKeys = document.querySelectorAll('.key');
+            this.memoizedElements.specialKeys = document.querySelectorAll('.key.special');
+            this.memoizedElements.keyboardRows = document.querySelectorAll('.keyboard-row');
+            
+            console.log('Memoized elements refreshed');
         }
 
         init() {
@@ -2226,13 +2263,21 @@
         }
 
         updateCurrentRow() {
-            // Находим первую свободную ячейку сверху вниз
+            // Находим первую свободную ячейку сверху вниз с использованием мемоизированных элементов
+            const inputCells = this.memoizedElements.inputCells;
+            
             for (let row = 0; row < 6; row++) {
-                const rowCells = document.querySelectorAll(`[data-row="${row}"].input-cell`);
+                // Фильтруем ячейки для текущей строки
+                const rowCells = Array.from(inputCells).filter(cell => 
+                    cell.getAttribute('data-row') === row.toString()
+                );
+                
                 if (rowCells.length > 0) {
                     // Проверяем, есть ли пустые ячейки в этой строке
                     for (let col = 0; col < 5; col++) {
-                        const cell = document.querySelector(`[data-row="${row}"][data-col="${col}"].input-cell`);
+                        const cell = rowCells.find(cell => 
+                            cell.getAttribute('data-col') === col.toString()
+                        );
                         if (cell && !cell.textContent.trim()) {
                             this.currentRow = row;
                             this.currentCol = col;
@@ -2420,18 +2465,18 @@
         }
 
         updateGameBoard() {
-            // Обновляем количество строк в зависимости от выбранного количества попыток
-            const gameBoard = document.getElementById('gameBoard');
+            // Используем мемоизированные элементы для быстрого обновления
+            const gameBoard = this.memoizedElements.gameBoard;
+            const allRows = this.memoizedElements.allRows;
             const currentMode = document.querySelector('input[name="gameMode"]:checked');
 
-            console.log('updateGameBoard called, mode:', currentMode?.value, 'maxAttempts:', this.maxAttempts);
+            console.log('updateGameBoard called (memoized), mode:', currentMode?.value, 'maxAttempts:', this.maxAttempts);
 
             if (currentMode && currentMode.value === 'GUESS') {
                 // Скрываем/показываем только строки для ввода (с input-cell)
-                const allRows = gameBoard.querySelectorAll('.word-row');
                 let inputRowIndex = 0;
 
-                console.log('Found', allRows.length, 'rows total');
+                console.log('Found', allRows.length, 'rows total (memoized)');
 
                 allRows.forEach((rowElement, index) => {
                     // Проверяем, есть ли в строке ячейки для ввода
@@ -2457,7 +2502,6 @@
                 });
             } else {
                 // В режиме "Слово дня" показываем все строки
-                const allRows = gameBoard.querySelectorAll('.word-row');
                 allRows.forEach(rowElement => {
                     rowElement.style.display = 'flex';
                 });
@@ -2466,6 +2510,9 @@
 
         switchMode(mode) {
             console.log('Switching to mode:', mode);
+
+            // Быстро сбрасываем состояние игры с использованием мемоизации
+            this.resetGameState();
 
             // Обновляем игровое поле при переключении режима
             this.updateGameBoard();
@@ -2901,10 +2948,48 @@
         }
 
         resetKeyboardHighlight() {
-            const keys = document.querySelectorAll('.key');
-            keys.forEach(key => {
+            // Используем мемоизированные элементы клавиатуры для быстрой очистки
+            const allKeys = this.memoizedElements.allKeys;
+            allKeys.forEach(key => {
                 key.classList.remove('correct', 'present', 'absent');
             });
+            console.log('Keyboard highlight reset (memoized)');
+        }
+
+        clearGameBoardToEmpty() {
+            // Быстрая очистка игрового поля до пустого состояния с использованием мемоизации
+            const allCells = this.memoizedElements.allCells;
+            
+            allCells.forEach(cell => {
+                // Очищаем содержимое ячейки
+                cell.textContent = '';
+                
+                // Убираем все классы состояний
+                cell.classList.remove('correct', 'present', 'absent');
+                
+                // Сбрасываем стили
+                cell.style.backgroundColor = '';
+                cell.style.color = '';
+                cell.style.borderColor = '';
+            });
+            
+            console.log('Game board cleared to empty state (memoized)');
+        }
+
+        resetGameState() {
+            // Быстрый сброс состояния игры с использованием мемоизации
+            this.currentRow = 0;
+            this.currentCol = 0;
+            this.isGameOver = false;
+            this.gameStartTime = null;
+            this.gameEndTime = null;
+            this.guessedLetters.clear();
+            
+            // Очищаем игровое поле и клавиатуру
+            this.clearGameBoardToEmpty();
+            this.resetKeyboardHighlight();
+            
+            console.log('Game state reset (memoized)');
         }
 
         showMessage(text, type) {
