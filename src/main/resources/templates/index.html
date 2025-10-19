@@ -1932,6 +1932,42 @@
                 font-size: 0.85em;
             }
         }
+
+        /* Стили для индикатора загрузки при переключении режимов */
+        .loading-indicator {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+
+        .loading-indicator .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--muted);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+
+        .loading-indicator span {
+            color: var(--foreground);
+            font-size: 1.1rem;
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -2511,29 +2547,135 @@
         switchMode(mode) {
             console.log('Switching to mode:', mode);
 
+            // Показываем индикатор загрузки
+            this.showLoadingIndicator();
+
             // Быстро сбрасываем состояние игры с использованием мемоизации
             this.resetGameState();
 
             // Обновляем игровое поле при переключении режима
             this.updateGameBoard();
 
-            // Отправляем запрос на сервер для переключения режима
-            const form = document.createElement('form');
-            form.method = 'POST';
-            form.action = '/switch-mode';
+            // Отправляем AJAX запрос на сервер для переключения режима без перезагрузки страницы
+            const requestBody = `mode=${encodeURIComponent(mode)}`;
+            console.log('AJAX request body:', requestBody);
+            
+            fetch('/switch-mode', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                body: requestBody
+            })
+            .then(response => {
+                console.log('Response received:', response);
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                return response.text();
+            })
+            .then(html => {
+                console.log('Mode switched successfully via AJAX');
+                // Обновляем только необходимые части страницы без полной перезагрузки
+                this.updatePageAfterModeSwitch(mode);
+            })
+            .catch(error => {
+                console.error('Error switching mode:', error);
+                this.showMessage('Ошибка при переключении режима: ' + error.message, 'error');
+            })
+            .finally(() => {
+                // Скрываем индикатор загрузки
+                this.hideLoadingIndicator();
+            });
+        }
 
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = 'mode';
-            input.value = mode;
+        updatePageAfterModeSwitch(mode) {
+            // Обновляем только необходимые части страницы после переключения режима
+            console.log('Updating page after mode switch to:', mode);
+            
+            // Обновляем состояние переключателя режимов
+            const modeInputs = document.querySelectorAll('input[name="gameMode"]');
+            modeInputs.forEach(input => {
+                input.checked = (input.value === mode);
+            });
+            
+            // Обновляем заголовок (номер игры) в зависимости от режима
+            const gameNumberElement = document.querySelector('h1 span');
+            if (gameNumberElement) {
+                if (mode === 'DAILY') {
+                    // Для режима "Слово дня" показываем номер игры
+                    const todayGameNumber = this.getTodayGameNumber();
+                    gameNumberElement.textContent = `#${todayGameNumber}`;
+                    gameNumberElement.style.display = 'inline';
+                } else {
+                    // Для режима "Угадывать" скрываем номер игры
+                    gameNumberElement.style.display = 'none';
+                }
+            }
+            
+            // Обновляем информацию о дне
+            this.updateDailyInfo();
+            
+            // Фокусируемся на первой ячейке
+            this.focusFirstAvailableCell();
+            
+            console.log('Page updated successfully after mode switch (no reload)');
+        }
 
-            form.appendChild(input);
-            document.body.appendChild(form);
+        getTodayGameNumber() {
+            // Получаем номер сегодняшней игры (можно захардкодить или получить с сервера)
+            // Для простоты используем фиксированное значение
+            return 19; // Замените на реальный номер игры
+        }
 
-            console.log('Submitting form with action:', form.action);
-            console.log('Form data:', new FormData(form));
+        updateDailyInfo() {
+            // Обновляем информацию о дне в заголовке
+            const currentMode = document.querySelector('input[name="gameMode"]:checked');
+            if (currentMode && currentMode.value === 'DAILY') {
+                // Показываем информацию о дне
+                const gameInfo = document.querySelector('.game-info');
+                if (gameInfo) {
+                    gameInfo.style.display = 'block';
+                }
+            } else {
+                // Скрываем информацию о дне
+                const gameInfo = document.querySelector('.game-info');
+                if (gameInfo) {
+                    gameInfo.style.display = 'none';
+                }
+            }
+        }
 
-            form.submit();
+        focusFirstAvailableCell() {
+            // Фокусируемся на первой доступной ячейке с использованием мемоизированных элементов
+            const inputCells = this.memoizedElements.inputCells;
+            if (inputCells && inputCells.length > 0) {
+                inputCells[0].focus();
+            }
+        }
+
+        showLoadingIndicator() {
+            // Создаем индикатор загрузки, если его нет
+            let loader = document.getElementById('modeSwitchLoader');
+            if (!loader) {
+                loader = document.createElement('div');
+                loader.id = 'modeSwitchLoader';
+                loader.className = 'loading-indicator';
+                loader.innerHTML = '<div class="spinner"></div><span>Переключение режима...</span>';
+                document.body.appendChild(loader);
+            }
+            loader.style.display = 'flex';
+        }
+
+        hideLoadingIndicator() {
+            const loader = document.getElementById('modeSwitchLoader');
+            if (loader) {
+                loader.style.display = 'none';
+            }
         }
 
         isValidLetter(key) {
