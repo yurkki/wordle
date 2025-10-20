@@ -1995,19 +1995,8 @@
     </div>
 </div>
 
-<div class="game-info">
-    <div class="status" th:classappend="${gameState.status.name().toLowerCase()}"
-         th:text="${gameState.status == T(org.example.wordle.model.GameStatus).WON ? 'Поздравляем! Вы выиграли!' :
-                          gameState.status == T(org.example.wordle.model.GameStatus).LOST ? 'Игра окончена. Загаданное слово: ' + gameState.targetWord : 
-                          ''}">
-    </div>
-
-</div>
 
 <div th:if="${error}" class="error" th:text="${error}"></div>
-<div th:if="${lastGuess != null and gameState.status == T(org.example.wordle.model.GameStatus).WON}"
-     class="success">Отлично! Вы угадали слово!
-</div>
 
 <div class="game-board" id="gameBoard">
     <!-- Подсказка для первой ячейки -->
