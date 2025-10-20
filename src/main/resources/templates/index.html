@@ -868,6 +868,13 @@
             overflow-y: auto;
         }
 
+        .no-data {
+            text-align: center;
+            color: #6b7280;
+            font-style: italic;
+            padding: 20px;
+        }
+
         .player-result {
             display: flex;
             align-items: center;
@@ -3476,38 +3483,36 @@
             `;
 
             // Распределение по попыткам
-            if (dailyStats.attemptsDistribution && Object.keys(dailyStats.attemptsDistribution).length > 0) {
-                html += `
-                    <div class="stats-section">
-                        <h3>Распределение по попыткам</h3>
-                        <div class="attempts-distribution">
-                `;
+            html += `
+                <div class="stats-section">
+                    <h3>Распределение по попыткам</h3>
+                    <div class="attempts-distribution">
+            `;
 
-                for (let i = 1; i <= 6; i++) {
-                    const count = dailyStats.attemptsDistribution[i] || 0;
-                    const filled = count > 0 ? 'filled' : '';
-                    html += `
-                        <div class="attempt-bar ${filled}">
-                            <div class="attempt-number">${i}</div>
-                            <div class="attempt-count">${count}</div>
-                        </div>
-                    `;
-                }
-
+            for (let i = 1; i <= 6; i++) {
+                const count = dailyStats.attemptsDistribution ? (dailyStats.attemptsDistribution[i] || 0) : 0;
+                const filled = count > 0 ? 'filled' : '';
                 html += `
-                        </div>
+                    <div class="attempt-bar ${filled}">
+                        <div class="attempt-number">${i}</div>
+                        <div class="attempt-count">${count}</div>
                     </div>
                 `;
             }
 
-            // Лучшие результаты
-            if (dailyStats.topPlayers && dailyStats.topPlayers.length > 0) {
-                html += `
-                    <div class="stats-section">
-                        <h3>Лучшие результаты</h3>
-                        <div class="top-players">
-                `;
+            html += `
+                    </div>
+                </div>
+            `;
 
+            // Лучшие результаты
+            html += `
+                <div class="stats-section">
+                    <h3>Лучшие результаты</h3>
+                    <div class="top-players">
+            `;
+
+            if (dailyStats.topPlayers && dailyStats.topPlayers.length > 0) {
                 dailyStats.topPlayers.forEach(player => {
                     const timeStr = player.gameTimeSeconds ?
                         formatGameTime(player.gameTimeSeconds) : '';
@@ -3520,12 +3525,16 @@
                         </div>
                     `;
                 });
-
+            } else {
                 html += `
-                        </div>
-                    </div>
+                    <div class="no-data">Пока нет результатов</div>
                 `;
             }
+
+            html += `
+                    </div>
+                </div>
+            `;
 
             // Результат игрока
             if (dailyStats.playerResult && dailyStats.playerResult.success) {
@@ -3546,7 +3555,7 @@
                 `;
             }
 
-            html += `</div>`;
+            html += `</div>`; // Закрываем daily-stats-section
         }
 
         if (!dailyStats || dailyStats.totalPlayers === 0) {
