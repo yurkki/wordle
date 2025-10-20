@@ -2015,7 +2015,8 @@
     </div>
 
     <!-- Пустые строки для оставшихся попыток -->
-    <div th:each="i : ${#numbers.sequence(0, 5 - #lists.size(gameState.guesses))}"
+    <div th:if="${#lists.size(gameState.guesses) < 6}"
+         th:each="i : ${#numbers.sequence(0, 5 - #lists.size(gameState.guesses))}"
          class="word-row"
          th:data-row="${#lists.size(gameState.guesses) + i}">
         <div th:each="j : ${#numbers.sequence(0, 4)}"
