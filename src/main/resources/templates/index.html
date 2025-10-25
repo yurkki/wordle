@@ -22,9 +22,27 @@
     <meta property="og:image" th:content="${appDomain + '/images/wordle-preview.svg'}">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Wordle - Русская версия игры">
     <meta property="og:url" th:content="${appDomain}">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Wordle">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:locale:alternate" content="en_US">
+    <meta property="og:updated_time" th:content="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+    <meta property="og:see_also" th:content="${appDomain}">
+    <meta property="article:author" content="Wordle Team">
+    <meta property="article:publisher" content="Wordle Team">
+    <meta property="article:section" content="Games">
+    <meta property="article:tag" content="wordle">
+    <meta property="article:tag" content="игра">
+    <meta property="article:tag" content="слова">
+    <meta property="article:tag" content="русский">
+    <meta property="article:tag" content="головоломка">
+    <meta property="article:modified_time" th:content="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}">
+    <meta property="article:published_time" content="2024-01-01">
+    <meta property="og:rich_attachment" content="true">
+    <meta property="og:app_id" content="wordle-russian">
+    <meta property="og:app_name" content="Wordle Russian">
 
     <!-- Twitter Card мета-теги -->
     <meta name="twitter:card" content="summary_large_image">
@@ -32,12 +50,130 @@
     <meta name="twitter:description"
           content="Угадайте слово из 5 букв за 6 попыток! Играйте в русскую версию популярной игры Wordle.">
     <meta name="twitter:image" th:content="${appDomain + '/images/wordle-preview.svg'}">
+    <meta name="twitter:image:alt" content="Wordle - Русская версия игры">
+    <meta name="twitter:site" content="@wordle_russian">
+    <meta name="twitter:creator" content="@wordle_russian">
+    <meta name="twitter:domain" th:content="${appDomain}">
+    <meta name="twitter:url" th:content="${appDomain}">
+    <meta name="twitter:label1" content="Игра">
+    <meta name="twitter:data1" content="Wordle">
+    <meta name="twitter:label2" content="Язык">
+    <meta name="twitter:data2" content="Русский">
+    <meta name="twitter:app:name:iphone" content="Wordle Russian">
+    <meta name="twitter:app:name:ipad" content="Wordle Russian">
+    <meta name="twitter:app:name:googleplay" content="Wordle Russian">
+    <meta name="twitter:app:url:iphone" th:content="${appDomain}">
+    <meta name="twitter:app:url:ipad" th:content="${appDomain}">
+    <meta name="twitter:app:url:googleplay" th:content="${appDomain}">
 
     <!-- Дополнительные мета-теги -->
     <meta name="description"
           content="Угадайте слово из 5 букв за 6 попыток! Играйте в русскую версию популярной игры Wordle. Слово дня или случайные слова - выбирайте режим игры.">
     <meta name="keywords" content="wordle, игра, слова, русский, угадать, головоломка">
     <meta name="author" content="Wordle Team">
+    
+    <!-- Канонический URL для предотвращения дублирования контента -->
+    <link rel="canonical" th:href="${appDomain}">
+    
+    <!-- Дополнительные SEO мета-теги -->
+    <meta name="robots" content="index, follow">
+    <meta name="googlebot" content="index, follow">
+    <meta name="language" content="ru">
+    <meta name="geo.region" content="RU">
+    <meta name="geo.country" content="Russia">
+    <meta name="theme-color" content="#6aaa64">
+    <meta name="msapplication-TileColor" content="#6aaa64">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Wordle">
+    <meta name="application-name" content="Wordle">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="format-detection" content="telephone=no">
+    
+    <!-- PWA и иконки -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="shortcut icon" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="/favicon.ico">
+    <link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico">
+    
+    <!-- Дополнительные SEO файлы -->
+    <link rel="author" href="/humans.txt">
+    <link rel="security" href="/.well-known/security.txt">
+    
+    <!-- Дополнительные SEO мета-теги -->
+    <meta name="revisit-after" content="1 days">
+    <meta name="rating" content="general">
+    <meta name="distribution" content="global">
+    <meta name="target" content="all">
+    <meta name="audience" content="all">
+    <meta name="coverage" content="worldwide">
+    <meta name="classification" content="games">
+    <meta name="category" content="games">
+    <meta name="subject" content="word game">
+    <meta name="abstract" content="Русская версия популярной игры Wordle - угадайте слово из 5 букв за 6 попыток">
+    <meta name="summary" content="Играйте в русскую версию Wordle онлайн бесплатно">
+    <meta name="designer" content="Wordle Team">
+    <meta name="copyright" content="Wordle Team">
+    <meta name="reply-to" content="support@wordle.ru">
+    <meta name="owner" content="Wordle Team">
+    <meta name="url" th:content="${appDomain}">
+    <meta name="identifier-URL" th:content="${appDomain}">
+    <meta name="directory" content="submission">
+    <meta name="pagename" content="Wordle Russian">
+    <meta name="category" content="Games">
+    <meta name="coverage" content="Worldwide">
+    <meta name="distribution" content="Global">
+    <meta name="rating" content="General">
+    <meta name="revisit-after" content="1 days">
+    <meta name="expires" content="never">
+    <meta name="cache-control" content="public">
+    <meta name="pragma" content="public">
+    
+    <!-- Структурированные данные для SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "Wordle - Русская версия",
+        "alternateName": "Русский Wordle",
+        "description": "Угадайте слово из 5 букв за 6 попыток! Играйте в русскую версию популярной игры Wordle. Слово дня или случайные слова - выбирайте режим игры.",
+        "url": th:text="${appDomain}",
+        "applicationCategory": "Game",
+        "operatingSystem": "Web Browser",
+        "browserRequirements": "Requires JavaScript. Requires HTML5.",
+        "softwareVersion": "1.0",
+        "datePublished": "2024-01-01",
+        "dateModified": th:text="${#dates.format(#dates.createNow(), 'yyyy-MM-dd')}",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "RUB",
+            "availability": "https://schema.org/InStock"
+        },
+        "author": {
+            "@type": "Organization",
+            "name": "Wordle Team",
+            "url": th:text="${appDomain}"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "Wordle Team",
+            "url": th:text="${appDomain}"
+        },
+        "inLanguage": "ru",
+        "isAccessibleForFree": true,
+        "interactionStatistic": {
+            "@type": "InteractionCounter",
+            "interactionType": "https://schema.org/PlayAction",
+            "userInteractionCount": "1000+"
+        },
+        "keywords": "wordle, игра, слова, русский, угадать, головоломка, игра слов, русский язык",
+        "genre": "Puzzle Game",
+        "gamePlatform": "Web Browser"
+    }
+    </script>
     
     <!-- Yandex.Metrika counter -->
     <script type="text/javascript">

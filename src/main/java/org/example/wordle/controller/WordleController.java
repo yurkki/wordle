@@ -84,6 +84,22 @@ public class WordleController {
      */
     @GetMapping("/")
     public String index(@RequestParam(required = false) String word_id, Model model, HttpSession session, HttpServletRequest request, HttpServletResponse response) {
+        // Добавляем SEO заголовки
+        response.setHeader("X-Robots-Tag", "index, follow");
+        response.setHeader("Cache-Control", "public, max-age=3600");
+        response.setHeader("X-Content-Type-Options", "nosniff");
+        response.setHeader("X-Frame-Options", "SAMEORIGIN");
+        response.setHeader("Referrer-Policy", "strict-origin-when-cross-origin");
+        
+        // Проверяем, есть ли другие параметры кроме word_id, которые могут создавать дублирующий контент
+        String queryString = request.getQueryString();
+        if (queryString != null && !queryString.isEmpty()) {
+            // Если есть параметры, но нет word_id, перенаправляем на канонический URL
+            if (word_id == null || word_id.isEmpty()) {
+                return "redirect:/";
+            }
+        }
+        
         GameState gameState = (GameState) session.getAttribute("gameState");
         
         // Если передан word_id, создаем игру с загаданным словом
@@ -549,6 +565,144 @@ public class WordleController {
               <text x="600" y="550" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="white" opacity="0.8">%s</text>
             </svg>
             """, domain);
+    }
+    
+    /**
+     * Robots.txt для SEO
+     */
+    @GetMapping("/robots.txt")
+    @ResponseBody
+    public String robotsTxt() {
+        return """
+            User-agent: *
+            Allow: /
+            Disallow: /api/
+            Disallow: /debug/
+            Disallow: /hint
+            Disallow: /status
+            
+            Sitemap: %s/sitemap.xml
+            """.formatted(appDomain);
+    }
+    
+    /**
+     * Sitemap.xml для SEO
+     */
+    @GetMapping("/sitemap.xml")
+    @ResponseBody
+    public String sitemapXml() {
+        return """
+            <?xml version="1.0" encoding="UTF-8"?>
+            <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                <url>
+                    <loc>%s</loc>
+                    <lastmod>%s</lastmod>
+                    <changefreq>daily</changefreq>
+                    <priority>1.0</priority>
+                </url>
+            </urlset>
+            """.formatted(appDomain, java.time.LocalDate.now().toString());
+    }
+    
+    /**
+     * Favicon для SEO
+     */
+    @GetMapping("/favicon.ico")
+    @ResponseBody
+    public ResponseEntity<String> favicon() {
+        return ResponseEntity.ok()
+                .header("Content-Type", "image/x-icon")
+                .body(""); // Пустой favicon для предотвращения 404
+    }
+    
+    /**
+     * Apple touch icon для мобильных устройств
+     */
+    @GetMapping("/apple-touch-icon.png")
+    @ResponseBody
+    public ResponseEntity<String> appleTouchIcon() {
+        return ResponseEntity.ok()
+                .header("Content-Type", "image/png")
+                .body(""); // Пустой icon для предотвращения 404
+    }
+    
+    /**
+     * Manifest для PWA
+     */
+    @GetMapping("/manifest.json")
+    @ResponseBody
+    public ResponseEntity<String> manifest() {
+        String manifest = """
+            {
+                "name": "Wordle - Русская версия",
+                "short_name": "Wordle",
+                "description": "Угадайте слово из 5 букв за 6 попыток!",
+                "start_url": "/",
+                "display": "standalone",
+                "background_color": "#ffffff",
+                "theme_color": "#6aaa64",
+                "orientation": "portrait",
+                "icons": [
+                    {
+                        "src": "/images/wordle-preview.svg",
+                        "sizes": "any",
+                        "type": "image/svg+xml"
+                    }
+                ],
+                "categories": ["games", "entertainment"],
+                "lang": "ru",
+                "dir": "ltr"
+            }
+            """;
+        return ResponseEntity.ok()
+                .header("Content-Type", "application/json")
+                .body(manifest);
+    }
+    
+    /**
+     * Humans.txt для SEO
+     */
+    @GetMapping("/humans.txt")
+    @ResponseBody
+    public String humansTxt() {
+        return """
+            # humanstxt.org/
+            # The humans responsible & technology colophon
+            
+            # TEAM
+            
+                Developer: Wordle Team
+                Contact: support@wordle.ru
+                From: Russia
+            
+            # THANKS
+            
+                Spring Boot
+                Thymeleaf
+                PostgreSQL
+                Railway.app
+            
+            # SITE
+            
+                Last update: %s
+                Language: Russian
+                Doctype: HTML5
+            """.formatted(java.time.LocalDate.now().toString());
+    }
+    
+    /**
+     * Security.txt для SEO
+     */
+    @GetMapping("/.well-known/security.txt")
+    @ResponseBody
+    public String securityTxt() {
+        return """
+            Contact: support@wordle.ru
+            Expires: 2025-12-31T23:59:59.000Z
+            Encryption: https://wordle.ru/pgp-key.txt
+            Preferred-Languages: ru, en
+            Canonial: https://wordle.ru/.well-known/security.txt
+            """;
     }
     
     /**
